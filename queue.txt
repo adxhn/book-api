@@ -1,0 +1,86 @@
+Class
+- block_for = 5 : CPU kullanımını azaltır çünkü worker sürekli "Yeni iş var mı?" diye Redis'e sormak yerine 5 saniye boyunce bekler. (genelde 5 veya 10 seçilir, 0 yapılmamalı).
+
+- withoutRelations() : Eğer bir Job'a model gönderiliyorsa ve o modelin o an yüklü olan comments,
+author gibi ilişkilerine Job içinde ihtiyaç yoksa, mutlaka #[WithoutRelations] kullanılmalı. Performans için kritik.
+
+- ShouldBeUnique: Örneğin bir kullanıcıya "Doğrulama E-postası" gönderen bir Job varsa ve kullanıcı butona ardı ardına 10 kez basarsa;
+ShouldBeUnique ve uniqueId() { return $this->user->id; } kullanarak kuyrukta 10 tane mail birikmesini engelleyebiliriz.
+
+- ShouldBeEncrypted: Eğer Job içinde şifre sıfırlama linki veya hassas bir kişisel veri varsa,
+ShouldBeEncrypted ekleyerek Redis üzerinde bu verilerin düz metin (plain text) olarak görünmesini engelleyebiliriz.
+
+Dispatch
+- delayedDispatch: kullanıcı kayıt olduktan 1-2 sonra mail atmak daha hemen göndermekten daha insanidir.
+Veya kullanıcı şifremi unuttum bağlantısını kullandıktan 10 dk sonra "bu işlemi siz mi yaptınız?" gibi bir güvenlik maili atılabilir.
+
+- dispatchSync: iş bitmeden response dönmez, http'yi bloklar. Kritik ve anlık işlemler için garanti odaklı kullanılır (şifre değiştirme, ödeme gibi şlemler).
+
+- deferred: Neden kullanılır?: php isteği işler ve nginx'e yanıt dönmesini söyler, response hemen döner. Ancak php worker o an job'ı işlemekle meşgul olmaya devam eder.
+
+- background: deferred'a benzer çalışır ama php worker ama işi başka bir php process'ine devreder.
+
+deferred ve background farkı:
+Örneğin küçük bir veritabanı işlemi yapılacaksa, log kaydı atılacaksa veya bir bildirim gönderilecekse bunu background ile yapmak;
+bir vidayı sıkmak için koca bir vinç çağırmaya benzer. deferred ile o anki akışın sonunda hemen halletmek çok daha verimlidir.
+Çünkü 1 saniyenin altında sürecek olan küçük bir iş için koca bir php worker ayağa kaldırmak gereksiz ram ve cpu tüketimi demektir.
+Sms, mail veya başka bir api'ye bağlanmak gibi uzun sürecek işlerde background kullanılmalıdır.
+
+transaction & after commit:
+Register işleminin transaction ile yapıldığını düşünürsek, after commit olmadan job çalıstırmak,
+job'ın veritabanına bakıp o kaydı bulamama tehlikesini doğurur (çünkü işlemler senkron ve milisaniyelik ilerler).
+after_commit şunu söyler: Ben bir Job fırlatsam bile acele etme. Şu an devam eden veritabanı işlemi (transaction) başarıyla bitene kadar bekle, sonra Job'ı gönder.
+
+Job Chaining:
+Diyelim ki bir kurumsal kayıt API var. Süreç çok uzun ve birbirine bağlı:
+
+public function approveCorporateAccount(Request $request): JsonResponse
+{
+    // ... doğrulama işlemleri ...
+
+    Bus::chain([
+        new ValidateTaxNumber($company),      // 1. Vergi numarasını sorgula
+        new CreateCompanyWorkspace($company), // 2. Çalışma alanı oluştur (1 başarılıysa)
+        new AssignAdminRoles($user),         // 3. Yetkileri ata (2 başarılıysa)
+        new SendCorporateWelcomeEmail($user), // 4. Mail gönder (3 başarılıysa)
+    ])->catch(function (Throwable $e) {
+        // Herhangi biri patlarsa burası çalışır
+        Log::error("Kurumsal onay zinciri koptu: " . $e->getMessage());
+    })->dispatch();
+
+    return response()->json(['message' => 'Onay süreci başlatıldı, tamamlandığında bilgilendirileceksiniz.']);
+}
+Mimari Fayda:
+Hata Takibi: Hangi aşamada kalındığını net bilirsin.
+Temiz Kod: Job'lar birbirini çağırmak zorunda kalmaz (spagetti kod olmaz).
+Güvenilirlik: Bir adım başarısızsa sonraki adımlar asla çalışmaz, veritabanın ve sistemin tutarlı kalır.
+
+Queue
+Şifre sıfırlama (OTP) SMS'i bekleyen bir kullanıcı ile sistemdeki eski logları temizleyen bir Job aynı sırada beklememeli.
+OTP işini ->onQueue('high') şeridine,
+Log temizleme işini ->onQueue('low') şeridine atarız.
+Worker'ına "Önce high kuyruğunu temizle, boş kalırsan low'a bak" dersin. Böylece kritik API süreçlerin asla aksamaz.
+
+Connection
+Bazen bazı işleri kendi sunucunda yapmak yerine dış bir sisteme (Amazon SQS vb.) yıkmak isteyebilirsin.
+Senin için anlamı: Kendi sunucunu (Redis) sadece çok hızlı biten Identity işlemleri için kullanıp,
+çok ağır video işleme veya toplu mail gönderimi gibi işleri ->onConnection('sqs') diyerek başka bir servise paslayabilirsin.
+
+$tries
+Bazı hatalar geçicidir (örneğin SMS servisinin 2 saniyeliğine çevrimdışı olması).
+Tek bir denemede pes etmek yerine $tries = 3 diyerek sisteme şans veririz. Ama sonsuza kadar denemezsin ki kuyruk şişmesin.
+
+retryUntil
+Bazı işlerin bir "son kullanma tarihi" vardır. Örneğin şifre sıfırlama linki içeren bir mail gönderiyorsan ve bu link 15 dakika geçerliyse,
+o Job'ın 20 dakika sonra gönderilmesinin bir anlamı yoktur. retryUntil ile "Bu işi 15 dakika boyunca dene, olmazsa çöpe at" diyerek sistemi temiz tutarsın.
+
+$maxExceptions
+kodun içinde max 3 kez exception fırlatırılırsa job durur.
+
+$timeout
+Bir "Profil Fotoğrafı Boyutlandırma" Job'ına $timeout = 30 vererek, eğer bir dosya bozuksa ve PHP onu işlerken sonsuz döngüye girerse,
+sunucunun o süreci öldürmesini sağlarsın. Bu, tek sunucunun ayakta kalması için bir emniyet kemeridir.
+
+Exceptionlar ve Release'ler
+Dış bir api'ye veya kaynağa bağlanarak çalışan joblar beklenmedik durumlardan dolayı hatayla karşılaşabilir. Örneğin dış kaynak 429 döndü.
+$release->(30) diyerek 30 saniye sonra tekrar dene diyebiliriz.
