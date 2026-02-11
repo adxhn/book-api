@@ -15,7 +15,7 @@ return [
     |
     */
 
-    'name' => env('HORIZON_NAME'),
+    'name' => 'Queue Dashboard',
 
     /*
     |--------------------------------------------------------------------------
@@ -213,12 +213,24 @@ return [
             'balanceMaxShift' => 1,
             'balanceCooldown' => 3,
         ],
+
+        'heavy' => [
+            'connection' => 'redis',
+            'queue' => ['heavy-tasks'],
+            'balance' => 'false', // Ağır işlerde dengelemeyi kapatmak daha güvenlidir
+            'minProcesses' => 1,
+            'maxProcesses' => 1,  // İşte Mac'ini kurtaran altın kural!
+            'memory' => 512,      // Ağır işe daha fazla RAM izni
+            'timeout' => 300,     // 5 dakika sürsün, hemen hata verme
+        ],
     ],
 
     'environments' => [
         'production' => [
             'simple' => [
-
+                'maxProcesses' => 10,
+                'balanceMaxShift' => 3,
+                'balanceCooldown' => 1,
             ],
         ],
 
