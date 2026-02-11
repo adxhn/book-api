@@ -69,7 +69,7 @@ return [
 
     'prefix' => env(
         'HORIZON_PREFIX',
-        Str::slug(env('APP_NAME', 'laravel'), '_').'_horizon:'
+        Str::slug(\App\Constants\Api::APP_NAME, '_').'_horizon:'
     ),
 
     /*
@@ -197,45 +197,35 @@ return [
     */
 
     'defaults' => [
-        'supervisor-1' => [
+        'simple' => [
             'connection' => 'redis',
-            'queue' => ['default'],
+            'queue' => ['high', 'default'],
             'balance' => 'auto',
             'autoScalingStrategy' => 'time',
-            'maxProcesses' => 1,
-            'maxTime' => 0,
-            'maxJobs' => 0,
+            'minProcesses' => 1,
+            'maxProcesses' => 3,
+            'maxTime' => 3600,
+            'maxJobs' => 100,
             'memory' => 128,
-            'tries' => 1,
+            'tries' => 3,
             'timeout' => 60,
             'nice' => 0,
+            'balanceMaxShift' => 1,
+            'balanceCooldown' => 3,
         ],
     ],
 
     'environments' => [
         'production' => [
-            'supervisor-1' => [
-                'maxProcesses' => 10,
-                'balanceMaxShift' => 1,
-                'balanceCooldown' => 3,
+            'simple' => [
+
             ],
         ],
 
         'environments' => [
             'local' => [
-                'supervisor-1' => [
-                    'connection' => 'redis',
-                    'queue' => ['high', 'default'],
-                    'balance' => 'auto', // İş yüküne göre kuyruklar arası işçi kaydırır
-                    'autoScalingStrategy' => 'time',
-                    'minProcesses' => 1, // Her zaman 1 işçi hazır beklesin
-                    'maxProcesses' => 3, // RAM'i korumak için tavanı 6'da tuttuk (M2 için güvenli)
-                    'maxTime' => 0,
-                    'maxJobs' => 0,
-                    'memory' => 128, // Bir işçi 128MB RAM'i geçerse onu yeniden başlat
-                    'tries' => 3,
-                    'timeout' => 60,
-                    'nice' => 0,
+                'simple' => [
+
                 ],
             ],
         ],
