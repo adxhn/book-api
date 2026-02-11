@@ -8,7 +8,7 @@ class DB
     public const URL = '';
     public const HOST = '127.0.0.1';
     public const PORT = '3306';
-    public const DATABASE = 'book-api';
+    public const DATABASE = 'book_api';
     public const USER_NAME = 'root';
     public const USER_PASS = 'root_pass';
     public const CHARSET = 'utf8mb4';

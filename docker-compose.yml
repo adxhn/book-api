@@ -1,0 +1,28 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: book_app_mysql
+    restart: always
+    environment:
+      MYSQL_DATABASE: book_api
+      MYSQL_ROOT_PASSWORD: root_pass
+      MYSQL_USER: book_db_user
+      MYSQL_PASSWORD: user_pass
+      TZ: Europe/Istanbul
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+
+  redis:
+    image: redis:7-alpine
+    container_name: book_app_redis
+    restart: always
+    command: redis-server --save 60 1 --loglevel warning # 60 saniyede bir veri değişmişse kaydeder
+    ports:
+      - "6379:6379"
+    environment:
+      TZ: Europe/Istanbul
+
+volumes:
+  db_data:
