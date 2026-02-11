@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'default' => env('QUEUE_CONNECTION', 'database'),
+    'default' => \App\Constants\Queue::DRIVER,
 
     /*
     |--------------------------------------------------------------------------
@@ -66,8 +66,8 @@ return [
 
         'redis' => [
             'driver' => 'redis',
-            'connection' => env('REDIS_QUEUE_CONNECTION', 'default'),
-            'queue' => env('REDIS_QUEUE', 'default'),
+            'connection' => \App\Constants\Redis::QUEUE_CONNECTION_NAME,
+            'queue' => \App\Constants\Queue::QUEUE_NAME,
             'retry_after' => (int) env('REDIS_QUEUE_RETRY_AFTER', 90),
             'block_for' => null,
             'after_commit' => false,
