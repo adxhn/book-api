@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api\Identity;
+namespace App\Http\Controllers\Identity;
 
 use App\Http\Controllers\Controller;
 
