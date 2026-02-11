@@ -221,9 +221,22 @@ return [
             ],
         ],
 
-        'local' => [
-            'supervisor-1' => [
-                'maxProcesses' => 3,
+        'environments' => [
+            'local' => [
+                'supervisor-1' => [
+                    'connection' => 'redis',
+                    'queue' => ['high', 'default'],
+                    'balance' => 'auto', // İş yüküne göre kuyruklar arası işçi kaydırır
+                    'autoScalingStrategy' => 'time',
+                    'minProcesses' => 1, // Her zaman 1 işçi hazır beklesin
+                    'maxProcesses' => 3, // RAM'i korumak için tavanı 6'da tuttuk (M2 için güvenli)
+                    'maxTime' => 0,
+                    'maxJobs' => 0,
+                    'memory' => 128, // Bir işçi 128MB RAM'i geçerse onu yeniden başlat
+                    'tries' => 3,
+                    'timeout' => 60,
+                    'nice' => 0,
+                ],
             ],
         ],
     ],
