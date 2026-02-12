@@ -13,4 +13,5 @@ class Api
     public const APP_LOCALE = 'tr';
     public const LOG_CHANNEL = 'daily';
     public const CACHE_DRIVER = 'redis';
+    public const NO_REPLY_MAIL_ADDRESS = 'no-reply@book-api.com';
 }

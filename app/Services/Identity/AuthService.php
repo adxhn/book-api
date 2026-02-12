@@ -2,9 +2,11 @@
 
 namespace App\Services\Identity;
 
+use App\Mail\UserWelcome;
 use App\Repositories\SessionRepository;
 use App\Repositories\UserRepository;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 
 class AuthService
 {
@@ -35,7 +37,7 @@ class AuthService
             $token = $user->createToken('auth-token');
             $this->sessionRepository->saveDeviceInfo($token);
 
-            //Mail::to($user)->send(new WelcomeMail($user));
+            Mail::to($user)->later(now()->addMinute(), new UserWelcome($user));
 
             return [
                 'user' => [

@@ -18,7 +18,7 @@ Veya kullanıcı şifremi unuttum bağlantısını kullandıktan 10 dk sonra "bu
 
 - deferred: Neden kullanılır?: php isteği işler ve nginx'e yanıt dönmesini söyler, response hemen döner. Ancak php worker o an job'ı işlemekle meşgul olmaya devam eder.
 
-- background: deferred'a benzer çalışır ama php worker ama işi başka bir php process'ine devreder.
+- background: deferred'a benzer çalışır ama php worker işi başka bir php process'ine devreder.
 
 deferred ve background farkı:
 Örneğin küçük bir veritabanı işlemi yapılacaksa, log kaydı atılacaksa veya bir bildirim gönderilecekse bunu background ile yapmak;
@@ -84,3 +84,5 @@ sunucunun o süreci öldürmesini sağlarsın. Bu, tek sunucunun ayakta kalması
 Exceptionlar ve Release'ler
 Dış bir api'ye veya kaynağa bağlanarak çalışan joblar beklenmedik durumlardan dolayı hatayla karşılaşabilir. Örneğin dış kaynak 429 döndü.
 $release->(30) diyerek 30 saniye sonra tekrar dene diyebiliriz.
+
+brew services start mysql && brew services start redis
