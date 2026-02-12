@@ -6,8 +6,8 @@ class Redis
 {
     public const CLIENT = 'predis';
     public const URL = '';
-    public const HOST = '';
-    public const PORT = '';
+    public const HOST = '127.0.0.1';
+    public const PORT = '6379';
     public const USER = '';
     public const PASSWORD = '';
     public const DB_INDEX = 0;
