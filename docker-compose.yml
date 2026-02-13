@@ -4,9 +4,9 @@ services:
     container_name: book_app_mysql
     restart: always
     environment:
-      MYSQL_DATABASE: book_api
+      MYSQL_DATABASE: test_db
       MYSQL_ROOT_PASSWORD: root_pass
-      MYSQL_USER: book_db_user
+      MYSQL_USER: test_db_user
       MYSQL_PASSWORD: user_pass
       TZ: Europe/Istanbul
     ports:
