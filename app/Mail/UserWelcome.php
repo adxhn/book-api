@@ -2,7 +2,6 @@
 
 namespace App\Mail;
 
-use App\Constants\Api;
 use App\Models\User;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Mail\Mailables\Address;
@@ -36,7 +35,7 @@ class UserWelcome extends Mailable implements ShouldBeUnique
     public function envelope(): Envelope
     {
         return new Envelope(
-            from: new Address(Api::NO_REPLY_MAIL_ADDRESS, Api::APP_NAME),
+            from: new Address('test@example.com', config('app.name')),
             subject: 'Hoşgeldiniz, Kaydınız Oluşturuldu',
         );
     }

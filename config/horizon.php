@@ -69,7 +69,7 @@ return [
 
     'prefix' => env(
         'HORIZON_PREFIX',
-        Str::slug(\App\Constants\Api::APP_NAME, '_').'_horizon:'
+        Str::slug(config('app.name'), '_').'_horizon:'
     ),
 
     /*
