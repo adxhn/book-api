@@ -19,8 +19,6 @@ class UserWelcome extends Mailable implements ShouldBeUnique
 
     public int $tries = 3;
     public int $timeout = 30;
-    public int $maxExceptions = 3;
-    public bool $failOnTimeout = true;
 
     /**
      * Create a new message instance.
@@ -29,6 +27,7 @@ class UserWelcome extends Mailable implements ShouldBeUnique
         public User $user,
     ) {
         $this->afterCommit();
+        $this->onQueue('low');
     }
 
     /**

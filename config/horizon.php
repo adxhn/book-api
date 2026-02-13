@@ -199,7 +199,7 @@ return [
     'defaults' => [
         'simple' => [
             'connection' => 'redis',
-            'queue' => ['high', 'default'],
+            'queue' => ['high', 'low'],
             'balance' => 'auto',
             'autoScalingStrategy' => 'time',
             'minProcesses' => 1,
@@ -213,16 +213,6 @@ return [
             'balanceMaxShift' => 1,
             'balanceCooldown' => 3,
         ],
-
-        'heavy' => [
-            'connection' => 'redis',
-            'queue' => ['heavy-tasks'],
-            'balance' => 'false', // Ağır işlerde dengelemeyi kapatmak daha güvenlidir
-            'minProcesses' => 1,
-            'maxProcesses' => 1,  // İşte Mac'ini kurtaran altın kural!
-            'memory' => 512,      // Ağır işe daha fazla RAM izni
-            'timeout' => 300,     // 5 dakika sürsün, hemen hata verme
-        ],
     ],
 
     'environments' => [
@@ -232,13 +222,21 @@ return [
                 'balanceMaxShift' => 3,
                 'balanceCooldown' => 1,
             ],
+
+            'heavy' => [
+                'connection' => 'redis',
+                'queue' => ['heavy-tasks'],
+                'balance' => 'false', // Ağır işlerde dengelemeyi kapatmak daha güvenlidir
+                'minProcesses' => 1,
+                'maxProcesses' => 1,  // İşte Mac'ini kurtaran altın kural!
+                'memory' => 512,      // Ağır işe daha fazla RAM izni
+                'timeout' => 300,     // 5 dakika sürsün, hemen hata verme
+            ],
         ],
 
-        'environments' => [
-            'local' => [
-                'simple' => [
+        'local' => [
+            'simple' => [
 
-                ],
             ],
         ],
     ],
