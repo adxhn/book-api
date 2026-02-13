@@ -18,7 +18,7 @@ return [
     |
     */
 
-    'default' => \App\Constants\Api::LOG_CHANNEL,
+    'default' => env('LOG_CHANNEL', 'stack'),
 
     /*
     |--------------------------------------------------------------------------
