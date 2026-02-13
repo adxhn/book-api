@@ -22,7 +22,6 @@ class UserWelcome extends Mailable implements ShouldBeUnique
     public int $maxExceptions = 3;
     public bool $failOnTimeout = true;
 
-
     /**
      * Create a new message instance.
      */
@@ -65,6 +64,6 @@ class UserWelcome extends Mailable implements ShouldBeUnique
 
     public function uniqueId(): string
     {
-        return $this->id; // Veya daha iyisi kullanıcının ID'si/Email'i
+        return $this->user->id;
     }
 }
