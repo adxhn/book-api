@@ -13,9 +13,9 @@ Her istekte auth requestleri: +3
 
 | Endpoint               | Sql İşlem Sayısı |
 |:-----------------------|:-----------------|
-| user.index             | 0                |
-| user.updateName        | 2                |
-| bookshelves.index      | 2                |
-| bookshelves.addBook    | 4                |
-| bookshelves.updateBook | 3                |
-| bookshelves.deleteBook | 3                |
+| user.index             | 3                |
+| user.updateName        | 5                |
+| bookshelves.index      | 5                |
+| bookshelves.addBook    | 7                |
+| bookshelves.updateBook | 8                |
+| bookshelves.deleteBook | 8                |
