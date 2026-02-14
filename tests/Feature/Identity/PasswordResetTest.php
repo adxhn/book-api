@@ -28,6 +28,8 @@ class PasswordResetTest extends TestCase
         $this->assertDatabaseHas('password_reset_tokens', [
             'email' => $user->email,
         ]);
+
+        Notification::assertSentTo($user);
     }
 
     public function test_email_is_required_for_password_reset_request(): void
