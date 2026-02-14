@@ -6,6 +6,3 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::middleware('throttle:' . \App\Providers\IdentityServiceProvider::THROTTLE_KEY)->group(function () {
-
-});
