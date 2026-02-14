@@ -6,5 +6,4 @@ Route::middleware('throttle:' . \App\Providers\IdentityServiceProvider::THROTTLE
     Route::post('/register', [\App\Http\Controllers\Identity\AuthController::class, 'register']);
     Route::post('/login', [\App\Http\Controllers\Identity\AuthController::class, 'login']);
     Route::post('/forgot-password', [\App\Http\Controllers\Identity\PasswordController::class, 'forgotPassword']);
-    Route::post('/reset-password', [\App\Http\Controllers\Identity\PasswordController::class, 'resetPassword'])->name('password.reset');
 });
