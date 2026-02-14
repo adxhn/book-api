@@ -1,0 +1,105 @@
+<?php
+
+namespace Tests\Feature\Identity;
+
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Password;
+use Tests\TestCase;
+
+class PasswordResetTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_user_can_request_password_reset_link(): void
+    {
+        Notification::fake();
+
+        $user = User::factory()->create();
+
+        $this->postJson('/api/forgot-password', ['email' => $user->email])
+            ->assertStatus(201)
+            ->assertJson(['message' => trans('passwords.sent')]);
+
+        // Assert that a token was created in the database
+        $this->assertDatabaseHas('password_reset_tokens', [
+            'email' => $user->email,
+        ]);
+    }
+
+    public function test_email_is_required_for_password_reset_request(): void
+    {
+        $this->postJson('/api/forgot-password', ['email' => ''])
+            ->assertStatus(422)
+            ->assertJsonValidationErrorFor('email');
+    }
+
+    public function test_user_can_reset_password_with_valid_token(): void
+    {
+        $user = User::factory()->create();
+        $token = Password::createToken($user);
+        $newPassword = 'Password123!';
+
+        $this->postJson('/api/reset-password', [
+            'email' => $user->email,
+            'token' => $token,
+            'password' => $newPassword,
+            'password_confirmation' => $newPassword,
+        ])
+            ->assertStatus(200)
+            ->assertJson(['status' => trans('passwords.reset')]);
+
+        $this->assertTrue(Hash::check($newPassword, $user->fresh()->password));
+
+        // Assert the token is deleted after a successful reset
+        $this->assertDatabaseMissing('password_reset_tokens', [
+            'email' => $user->email,
+        ]);
+    }
+
+    public function test_user_cannot_reset_password_with_invalid_token(): void
+    {
+        Notification::fake();
+
+        $user = User::factory()->create();
+        $newPassword = 'Password123!';
+
+        $this->postJson('/api/reset-password', [
+            'email' => $user->email,
+            'token' => 'invalid-token',
+            'password' => $newPassword,
+            'password_confirmation' => $newPassword,
+        ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrorFor('email'); // Laravel returns 'email' error for invalid token
+    }
+
+    public function test_password_requires_confirmation_and_validation_rules(): void
+    {
+        $user = User::factory()->create();
+        $token = Password::createToken($user);
+
+        // Test without password confirmation
+        $this->postJson('/api/reset-password', [
+            'email' => $user->email,
+            'token' => $token,
+            'password' => 'Password123!',
+            'password_confirmation' => '',
+        ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrorFor('password');
+
+        // Test with a weak password
+        $this->postJson('/api/reset-password', [
+            'email' => $user->email,
+            'token' => $token,
+            'password' => 'weak',
+            'password_confirmation' => 'weak',
+        ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrorFor('password');
+    }
+}

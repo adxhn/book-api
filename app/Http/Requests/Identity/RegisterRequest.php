@@ -28,7 +28,7 @@ class RegisterRequest extends FormRequest
                 'required',
                 'string',
                 'confirmed',
-                Password::min(8)
+                Password::min(6)
                     ->letters()
                     ->numbers()
                     ->mixedCase(),
