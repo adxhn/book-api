@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Identity\ForgotPasswordRequest;
 use App\Http\Requests\Identity\ResetPasswordRequest;
 use App\Services\Identity\PasswordService;
+use Illuminate\Http\Request;
 
 class PasswordController extends Controller
 {
@@ -27,5 +28,10 @@ class PasswordController extends Controller
         $status = $this->service->resetPassword($data);
 
         return response()->json(['status' => trans($status)]);
+    }
+
+    public function resetPasswordForm(Request $request)
+    {
+        return 'form view';
     }
 }
