@@ -2,11 +2,15 @@
 
 namespace App\Services\Identity;
 
+use App\Enums\UserStatus;
 use App\Mail\UserWelcome;
+use App\Models\User;
 use App\Repositories\SessionRepository;
 use App\Repositories\UserRepository;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Validation\ValidationException;
 
 class AuthService
 {
@@ -48,6 +52,49 @@ class AuthService
                 'token' => $token->plainTextToken,
             ];
         });
+    }
+
+    /**
+     * @param string $login
+     * @param string $password
+     * @return array
+     * @throws ValidationException
+     */
+    public function login(
+        string $login,
+        string $password
+    ): array
+    {
+        // Email veya username ile kullanıcı bul
+        $user = User::where(function ($query) use ($login) {
+            $query->where('email', $login)
+                ->orWhere('name', $login);
+        })->first();
+
+        if (! $user || ! Hash::check($password, $user->password)) {
+            throw ValidationException::withMessages([
+                'login' => ['Girdiğiniz bilgiler hatalı.'],
+            ]);
+        }
+
+        // Check if user is active
+        if ($user->user_status !== UserStatus::ACTIVE) {
+            throw ValidationException::withMessages([
+                'login' => ['Böyle bir kullanıcı yok.'],
+            ]);
+        }
+
+        $token = $user->createToken('auth-token');
+        $this->sessionRepository->saveDeviceInfo($token);
+
+        return [
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+            ],
+            'token' => $token->plainTextToken,
+        ];
     }
 
     private function generateUniqueName(string $email): string

@@ -19,7 +19,6 @@ class LoginTest extends TestCase
             'name' => 'testuser',
             'email' => 'test@example.com',
             'password' => Hash::make('Password123*'),
-            'user_status' => UserStatus::ACTIVE,
         ]);
 
         $response = $this->postJson('/api/login', [

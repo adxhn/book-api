@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Identity;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Identity\LoginRequest;
 use App\Http\Requests\Identity\RegisterRequest;
 use App\Services\Identity\AuthService;
 use Illuminate\Http\JsonResponse;
@@ -21,6 +22,17 @@ class AuthController extends Controller
         $validated = $request->validated();
         $result = $this->service->register(
             $validated['email'],
+            $validated['password']
+        );
+
+        return $this->success($result, 201);
+    }
+
+    public function login(LoginRequest $request): JsonResponse
+    {
+        $validated = $request->validated();
+        $result = $this->service->login(
+            $validated['login'],
             $validated['password']
         );
 
