@@ -1,10 +1,11 @@
 ## Sorgu Sayıları
 
 ### Public Requests
-| Endpoint               | Sql İşlem Sayısı |
-|:-----------------------|:-----------------|
-| Register               | 4                |
-| Login                  | 2                |
+| Endpoint       | Sql İşlem Sayısı |
+|:---------------|:-----------------|
+| Register       | 4                |
+| Login          | 2                |
+| ForgotPassword | 4                |
 
 ### Auth Requests
 
