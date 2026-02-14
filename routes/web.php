@@ -7,5 +7,5 @@ Route::get('/', function () {
 });
 
 Route::middleware('throttle:' . \App\Providers\IdentityServiceProvider::THROTTLE_KEY)->group(function () {
-    Route::get('/reset-password', [\App\Http\Controllers\Identity\PasswordController::class, 'resetPassword'])->name('password.reset');
+
 });
