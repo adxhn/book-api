@@ -45,7 +45,7 @@ class PasswordResetNotification extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         // frontUrl, gerçek bir url olmak zorunda çünkü kullanıcı bu sayfada şifre değiştirme formu dolduracak
-        // token da hidden olarak gönderilecek
+        // form post olarak ve token da hidden olarak gönderilecek
         $frontendUrl = config('app.url', 'http://localhost:8000');
         $resetUrl = $frontendUrl . '/reset-password?token=' . $this->token . '&email=' . urlencode($notifiable->getEmailForPasswordReset());
 
