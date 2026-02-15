@@ -8,3 +8,16 @@ Route::middleware('throttle:' . \App\Providers\IdentityServiceProvider::THROTTLE
     Route::post('/forgot-password', [\App\Http\Controllers\Identity\PasswordController::class, 'forgotPassword']);
     Route::post('/reset-password', [\App\Http\Controllers\Identity\PasswordController::class, 'resetPassword']);
 });
+
+
+/*
+ *
+ * reset password post bakılacak
+ * geminiye auth ile ilgili throtlle yapılandırması sorulacak
+ * reset password form job should unique incelenecek
+ * reset password request rate limit ve configler incelenecek
+ * auth throttle süresi configler incelenecek
+ * api responseları standartize olması için incelenecek
+ * artisanla ilgili terminal komutlarının kısayolları bakılacak
+ * şifre değiştirildiğinde logout olma durumuna bakılacak
+ */
