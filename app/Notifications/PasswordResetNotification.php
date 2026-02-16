@@ -6,8 +6,9 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Illuminate\Contracts\Queue\ShouldBeUnique;
 
-class PasswordResetNotification extends Notification implements ShouldQueue
+class PasswordResetNotification extends Notification implements ShouldQueue, ShouldBeUnique
 {
     use Queueable;
 
@@ -67,5 +68,10 @@ class PasswordResetNotification extends Notification implements ShouldQueue
         return [
             //
         ];
+    }
+
+    public function uniqueId(): string
+    {
+        return static::class . '-' . $this->notifiable->id;
     }
 }
