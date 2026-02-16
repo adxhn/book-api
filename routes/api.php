@@ -11,7 +11,6 @@ Route::middleware('throttle:' . \App\Providers\IdentityServiceProvider::THROTTLE
 
 
 /*
- * reset password post bakılacak
  * geminiye auth ile ilgili throtlle yapılandırması sorulacak
  * reset password form job should unique incelenecek
  * reset password request rate limit ve configler incelenecek
