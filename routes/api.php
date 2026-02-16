@@ -14,7 +14,5 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
 });
 
 /*
- * reset password request rate limit ve configler incelenecek
- * auth throttle süresi configler incelenecek
  * api responseları standartize olması için incelenecekk
  */
