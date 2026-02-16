@@ -22,25 +22,7 @@ class LoginTest extends TestCase
         ]);
 
         $response = $this->postJson('/api/login', [
-            'login' => 'test@example.com',
-            'password' => 'Password123*',
-        ]);
-
-        $response->assertStatus(201);
-        $this->assertNotNull($user->tokens()->first());
-    }
-
-    public function test_user_can_login_successfully_with_username(): void
-    {
-        $user = User::factory()->create([
-            'name' => 'testuser',
             'email' => 'test@example.com',
-            'password' => Hash::make('Password123*'),
-            'user_status' => UserStatus::ACTIVE,
-        ]);
-
-        $response = $this->postJson('/api/login', [
-            'login' => 'testuser',
             'password' => 'Password123*',
         ]);
 
@@ -48,7 +30,7 @@ class LoginTest extends TestCase
         $this->assertNotNull($user->tokens()->first());
     }
 
-    public function test_login_fails_with_incorrect_login(): void
+    public function test_login_fails_with_incorrect_email(): void
     {
         User::factory()->create([
             'name' => 'testuser',
@@ -58,12 +40,12 @@ class LoginTest extends TestCase
         ]);
 
         $response = $this->postJson('/api/login', [
-            'login' => 'wrong@example.com',
+            'email' => 'wrong@example.com',
             'password' => 'Password123*',
         ]);
 
         $response->assertStatus(422)
-            ->assertJsonValidationErrors(['login']);
+            ->assertJsonValidationErrors(['email']);
     }
 
     public function test_login_fails_with_incorrect_password(): void
@@ -76,12 +58,12 @@ class LoginTest extends TestCase
         ]);
 
         $response = $this->postJson('/api/login', [
-            'login' => 'test@example.com',
+            'email' => 'test@example.com',
             'password' => 'WrongPassword123*',
         ]);
 
         $response->assertStatus(422)
-            ->assertJsonValidationErrors(['login']);
+            ->assertJsonValidationErrors(['email']);
     }
 
     public function test_login_fails_when_user_is_inactive(): void
@@ -94,12 +76,12 @@ class LoginTest extends TestCase
         ]);
 
         $response = $this->postJson('/api/login', [
-            'login' => 'test@example.com',
+            'email' => 'test@example.com',
             'password' => 'Password123*',
         ]);
 
         $response->assertStatus(422)
-            ->assertJsonValidationErrors(['login']);
+            ->assertJsonValidationErrors(['email']);
     }
 
     public function test_login_fails_when_user_is_deleted(): void
@@ -112,12 +94,12 @@ class LoginTest extends TestCase
         ]);
 
         $response = $this->postJson('/api/login', [
-            'login' => 'test@example.com',
+            'email' => 'test@example.com',
             'password' => 'Password123*',
         ]);
 
         $response->assertStatus(422)
-            ->assertJsonValidationErrors(['login']);
+            ->assertJsonValidationErrors(['email']);
     }
 
     public function test_login_fails_when_login_is_missing(): void
@@ -127,13 +109,13 @@ class LoginTest extends TestCase
         ]);
 
         $response->assertStatus(422)
-            ->assertJsonValidationErrors(['login']);
+            ->assertJsonValidationErrors(['email']);
     }
 
     public function test_login_fails_when_password_is_missing(): void
     {
         $response = $this->postJson('/api/login', [
-            'login' => 'test@example.com',
+            'email' => 'test@example.com',
         ]);
 
         $response->assertStatus(422)
@@ -151,7 +133,7 @@ class LoginTest extends TestCase
         // İlk 5 deneme başarılı olmalı veya kimlik doğrulama başarısız olsa bile 200 veya 422 dönmeli
         for ($i = 0; $i < 5; $i++) {
             $response = $this->postJson('/api/login', [
-                'login' => 'test@example.com',
+                'email' => 'test@example.com',
                 'password' => 'WrongPassword123*', // Yanlış şifre ile deneme
             ]);
             $response->assertStatus(422); // Yanlış şifre olduğu için 422 bekliyoruz
@@ -159,7 +141,7 @@ class LoginTest extends TestCase
 
         // 6. deneme hız sınırlamasına takılmalı
         $response = $this->postJson('/api/login', [
-            'login' => 'test@example.com',
+            'email' => 'test@example.com',
             'password' => 'WrongPassword123*',
         ]);
         $response->assertStatus(429);

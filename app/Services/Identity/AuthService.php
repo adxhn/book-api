@@ -55,32 +55,28 @@ class AuthService
     }
 
     /**
-     * @param string $login
+     * @param string $email
      * @param string $password
      * @return array
      * @throws ValidationException
      */
     public function login(
-        string $login,
+        string $email,
         string $password
     ): array
     {
-        // Email veya username ile kullanıcı bul
-        $user = User::where(function ($query) use ($login) {
-            $query->where('email', $login)
-                ->orWhere('name', $login);
-        })->first();
+        $user = User::where('email', '=', $email)->first();
 
         if (! $user || ! Hash::check($password, $user->password)) {
             throw ValidationException::withMessages([
-                'login' => ['Girdiğiniz bilgiler hatalı.'],
+                'email' => ['Girdiğiniz bilgiler hatalı.'],
             ]);
         }
 
         // Check if user is active
         if ($user->user_status !== UserStatus::ACTIVE) {
             throw ValidationException::withMessages([
-                'login' => ['Böyle bir kullanıcı yok.'],
+                'email' => ['Böyle bir kullanıcı yok.'],
             ]);
         }
 

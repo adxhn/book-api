@@ -22,7 +22,7 @@ class IdentityServiceProvider extends ServiceProvider
     public function boot(): void
     {
         RateLimiter::for('login', function (Request $request) {
-            return Limit::perMinute(5)->by($request->login . '|' . $request->ip());
+            return Limit::perMinute(5)->by($request->email . '|' . $request->ip());
         });
 
         RateLimiter::for('register', function (Request $request) {

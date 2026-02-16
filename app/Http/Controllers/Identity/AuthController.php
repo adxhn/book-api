@@ -32,7 +32,7 @@ class AuthController extends Controller
     {
         $validated = $request->validated();
         $result = $this->service->login(
-            $validated['login'],
+            $validated['email'],
             $validated['password']
         );
 

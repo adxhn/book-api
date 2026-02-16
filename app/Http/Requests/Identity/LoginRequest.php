@@ -22,7 +22,7 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'login' => ['required', 'string'], // Email veya username
+            'email' => ['required', 'string', 'email', 'max:255'],
             'password' => ['required', 'string'],
         ];
     }
@@ -32,10 +32,8 @@ class LoginRequest extends FormRequest
      */
     protected function prepareForValidation(): void
     {
-        // Email ve username her ikisi de lowercase yapılmalı (register'da name lowercase kaydediliyor)
-        $login = strtolower(trim($this->login));
         $this->merge([
-            'login' => $login,
+            'email' => strtolower(trim($this->email)),
         ]);
     }
 
@@ -47,7 +45,7 @@ class LoginRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'login.required' => 'E-posta veya kullanıcı adı alanı zorunludur.',
+            'email.required' => 'E-posta alanı zorunludur.',
             'password.required' => 'Şifre alanı zorunludur.',
         ];
     }
