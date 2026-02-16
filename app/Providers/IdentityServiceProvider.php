@@ -8,9 +8,6 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 class IdentityServiceProvider extends ServiceProvider
 {
-    public const THROTTLE_KEY = 'auth-attempts';
-    public const THROTTLE_LIMIT = 5;
-
     /**
      * Register services.
      */
@@ -24,8 +21,20 @@ class IdentityServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        RateLimiter::for(static::THROTTLE_KEY, function (Request $request) {
-            return Limit::perMinute(static::THROTTLE_LIMIT)->by($request->ip());
+        RateLimiter::for('login', function (Request $request) {
+            return Limit::perMinute(5)->by($request->login . '|' . $request->ip());
+        });
+
+        RateLimiter::for('register', function (Request $request) {
+            return Limit::perHour(10)->by($request->ip());
+        });
+
+        RateLimiter::for('forgotPassword', function (Request $request) {
+            return Limit::perHour(3)->by($request->email);
+        });
+
+        RateLimiter::for('resetPassword', function (Request $request) {
+            return Limit::perMinute(5)->by($request->ip());
         });
     }
 }
