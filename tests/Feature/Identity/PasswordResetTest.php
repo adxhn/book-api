@@ -9,6 +9,7 @@ use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Password;
+use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class PasswordResetTest extends TestCase
@@ -104,5 +105,37 @@ class PasswordResetTest extends TestCase
         ])
             ->assertStatus(422)
             ->assertJsonValidationErrorFor('password');
+    }
+
+    public function test_resetting_password_logs_out_other_devices(): void
+    {
+        $user = User::factory()->create();
+
+        // Simulate a login and get a token (first device)
+        $token = $user->createToken('test-device-1')->plainTextToken;
+
+        // Verify the token works
+        $this->withHeaders([
+            'Authorization' => 'Bearer ' . $token,
+        ])->getJson('/api/me')->assertOk();
+
+        // Begin the password reset process
+        $resetToken = Password::createToken($user);
+        $newPassword = 'NewSecurePassword123!';
+
+        $this->postJson('/api/reset-password', [
+            'email' => $user->email,
+            'token' => $resetToken,
+            'password' => $newPassword,
+            'password_confirmation' => $newPassword,
+        ])->assertOk();
+
+        // Try to use the old token from the "first device"
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer ' . $token,
+        ])->getJson('/api/me');
+
+        // Assert that the session is no longer authenticated
+        $response->assertUnauthorized();
     }
 }

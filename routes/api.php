@@ -9,6 +9,11 @@ Route::middleware('throttle:' . \App\Providers\IdentityServiceProvider::THROTTLE
     Route::post('/reset-password', [\App\Http\Controllers\Identity\PasswordController::class, 'resetPassword']);
 });
 
+Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
+    Route::get('/me', function () {
+        return auth()->user();
+    });
+});
 
 /*
  * geminiye auth ile ilgili throtlle yapılandırması sorulacak

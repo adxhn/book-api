@@ -42,7 +42,7 @@ class PasswordService
                 'password' => Hash::make($password),
             ])->save();
 
-            Auth::logoutOtherDevices($password);
+            $user->tokens()->delete();
         });
 
         if ($status !== Password::PASSWORD_RESET) {
