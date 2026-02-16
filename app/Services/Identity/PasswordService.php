@@ -2,6 +2,7 @@
 
 namespace App\Services\Identity;
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Validation\ValidationException;
@@ -40,6 +41,8 @@ class PasswordService
             $user->forceFill([
                 'password' => Hash::make($password),
             ])->save();
+
+            Auth::logoutOtherDevices($password);
         });
 
         if ($status !== Password::PASSWORD_RESET) {
