@@ -20,6 +20,5 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
  * reset password form job should unique incelenecek
  * reset password request rate limit ve configler incelenecek
  * auth throttle süresi configler incelenecek
- * api responseları standartize olması için incelenecek
- * şifre değiştirildiğinde logout olma durumuna bakılacak
+ * api responseları standartize olması için incelenecekk
  */
