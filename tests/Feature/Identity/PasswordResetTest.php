@@ -9,6 +9,7 @@ use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 class PasswordResetTest extends TestCase
@@ -142,5 +143,47 @@ class PasswordResetTest extends TestCase
 
         // Assert that the session is no longer authenticated
         $response->assertUnauthorized();
+    }
+
+    public function test_forgot_password_endpoint_is_rate_limited(): void
+    {
+        $user = User::factory()->create();
+
+        // İlk istek başarılı olmalı
+        $this->postJson('/api/forgot-password', ['email' => $user->email])
+             ->assertStatus(201);
+
+        // 30 saniye içinde ikinci istek 422 hatası vermeli (Laravel'in dahili throttle)
+        $this->postJson('/api/forgot-password', ['email' => $user->email])
+             ->assertStatus(422)
+             ->assertJsonValidationErrorFor('email');
+
+        // Zamanı 31 saniye ileri sararak throttle'ın geçmesini bekle
+        $this->travel(31)->seconds();
+
+        // 31 saniye sonra tekrar istek gönder, başarılı olmalı
+        $this->postJson('/api/forgot-password', ['email' => $user->email])
+             ->assertStatus(201);
+    }
+
+    public function test_password_reset_token_expires_after_configured_time(): void
+    {
+        $user = User::factory()->create();
+        $token = Password::createToken($user);
+
+        // Zamanı 121 dakika ileri sar (limit 120 dakika) - Token artık geçersiz
+        $this->travel(15)->minutes();
+
+        $newPassword = 'NewPassword123!';
+
+        // Süresi dolmuş token ile şifre sıfırlamayı dene
+        $this->postJson('/api/reset-password', [
+            'email' => $user->email,
+            'token' => $token,
+            'password' => $newPassword,
+            'password_confirmation' => $newPassword,
+        ])
+            ->assertStatus(422) // Geçersiz token hatası bekliyoruz
+            ->assertJsonValidationErrorFor('email'); // Laravel süresi dolmuş token'lar için 'email' hatası verir
     }
 }
