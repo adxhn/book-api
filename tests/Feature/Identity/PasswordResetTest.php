@@ -9,7 +9,6 @@ use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Password;
-use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class PasswordResetTest extends TestCase
@@ -116,7 +115,7 @@ class PasswordResetTest extends TestCase
 
         // Verify the token works
         $this->withHeaders([
-            'Authorization' => 'Bearer ' . $token,
+            'Authorization' => 'Bearer ' . $token
         ])->getJson('/api/me')->assertOk();
 
         // Begin the password reset process
@@ -130,9 +129,15 @@ class PasswordResetTest extends TestCase
             'password_confirmation' => $newPassword,
         ])->assertOk();
 
+        $this->assertDatabaseMissing('personal_access_tokens', [
+            'tokenable_id' => $user->id,
+        ]);
+
+        $this->app['auth']->forgetGuards();
+
         // Try to use the old token from the "first device"
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $token,
+            'Authorization' => 'Bearer ' . $token
         ])->getJson('/api/me');
 
         // Assert that the session is no longer authenticated
