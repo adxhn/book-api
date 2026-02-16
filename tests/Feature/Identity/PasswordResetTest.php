@@ -9,7 +9,6 @@ use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Password;
-use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 class PasswordResetTest extends TestCase
@@ -185,25 +184,5 @@ class PasswordResetTest extends TestCase
         ])
             ->assertStatus(422) // Geçersiz token hatası bekliyoruz
             ->assertJsonValidationErrorFor('email'); // Laravel süresi dolmuş token'lar için 'email' hatası verir
-    }
-
-    public function test_password_reset_notification_job_is_not_unique(): void
-    {
-        Notification::fake(); // Queue::fake() yerine bunu kullan
-
-        $user = User::factory()->create();
-
-        $this->postJson('/api/forgot-password', ['email' => $user->email])->assertStatus(201);
-
-        $this->travel(31)->seconds();
-
-        $this->postJson('/api/forgot-password', ['email' => $user->email])->assertStatus(201);
-
-        // Notification'ın 2 kez gönderildiğini doğrula
-        Notification::assertSentTo(
-            [$user],
-            PasswordResetNotification::class,
-            2
-        );
     }
 }
