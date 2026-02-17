@@ -109,7 +109,7 @@ class EmailVerificationTest extends TestCase
         $response->assertStatus(403);
     }
 
-    public function test_email_cannot_send_verification_email_if_already_verified()
+    public function test_verified_user_cannot_request_new_link()
     {
         $user = User::factory()->unverified()->create(['email_verified_at' => now()]);
 
