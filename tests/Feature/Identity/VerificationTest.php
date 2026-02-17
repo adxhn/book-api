@@ -4,6 +4,7 @@ namespace Tests\Feature\Identity;
 
 use App\Models\User;
 use Illuminate\Auth\Events\Verified;
+use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Notification;
@@ -13,6 +14,18 @@ use Tests\TestCase;
 class VerificationTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_user_can_request_a_new_verification_link(): void
+    {
+        Notification::fake();
+
+        $user = User::factory()->unverified()->create();
+        $response = $this->actingAs($user)->postJson(route('verification.email'));
+
+        Notification::assertSentTo($user, VerifyEmail::class);
+
+        $response->assertStatus(200)->assertJson(['message' => trans('verification.sent')]);
+    }
 
     public function test_email_can_be_verified_with_valid_link(): void
     {
@@ -96,21 +109,32 @@ class VerificationTest extends TestCase
         $response->assertStatus(403);
     }
 
-    /**
-     * Test eder ki, doğrulama linki tekrar gönderilebilir.
-     * Bu test, `verification.send` rotası kaynak kodda tanımlı olmadığı için atlanmıştır.
-     */
-    public function test_verification_link_can_be_resent(): void
+    public function test_email_cannot_send_verification_email_if_already_verified()
     {
-        $this->markTestSkipped('Bu testin çalışması için `verification.notice` rotasının kaynak kodda tanımlı olması gerekir.');
+        $user = User::factory()->unverified()->create(['email_verified_at' => now()]);
+
+        $response = $this->actingAs($user)->postJson('/api/email/verification-notification');
+
+        $this->assertTrue($user->hasVerifiedEmail());
+        $response->assertStatus(403)
+            ->assertJson(['message' => trans('verification.already')]);
     }
 
-    /**
-     * Test eder ki, doğrulama bilgilendirme ekranı gösterilir.
-     * Bu test, `verification.notice` rotası kaynak kodda tanımlı olmadığı için atlanmıştır.
-     */
-    public function test_email_verification_screen_can_be_rendered(): void
+    public function test_user_cannot_request_verification_email_too_frequently(): void
     {
-        $this->markTestSkipped('Bu testin çalışması için `verification.notice` rotasının kaynak kodda tanımlı olması gerekir.');
+        Notification::fake(); // Gerçekten mail gönderilmesini engelle
+        $user = User::factory()->unverified()->create();
+
+        $this->actingAs($user);
+
+        for ($i = 0; $i < 3; $i++) {
+            $this->postJson(route('verification.email'))
+                ->assertStatus(200);
+        }
+
+        $response = $this->postJson(route('verification.email'));
+        $response->assertStatus(429);
+
+        Notification::assertCount(3);
     }
 }

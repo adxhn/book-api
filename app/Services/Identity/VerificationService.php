@@ -3,6 +3,7 @@
 namespace App\Services\Identity;
 
 use App\Models\User;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\URL;
@@ -12,11 +13,10 @@ class VerificationService
     public function sendVerificationEmail(User $user): string
     {
         if ($user->hasVerifiedEmail()) {
-            return __('verification.already');
+            throw new AuthorizationException(__('verification.already'));
         }
 
         $user->sendEmailVerificationNotification();
-
         return __('verification.sent');
     }
 
