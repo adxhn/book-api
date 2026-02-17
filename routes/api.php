@@ -13,9 +13,9 @@ Route::post('/reset-password', [PasswordController::class, 'resetPassword'])->mi
 Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
 
     /* Verification */
-    Route::post('/email/verification-notification', [VerificationController::class, 'sendVerificationEmail']);
     Route::get('/email/verify/{id}/{hash}', [VerificationController::class, 'verifyEmail'])
         ->middleware(['signed'])->name('verification.verify');
+    Route::post('/email/verification-notification', [VerificationController::class, 'sendVerificationEmail']);
 
     Route::get('/me', function () {
         return auth()->user();
