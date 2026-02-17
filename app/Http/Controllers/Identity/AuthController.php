@@ -25,7 +25,10 @@ class AuthController extends Controller
             $validated['password']
         );
 
-        return $this->success($result, 201);
+        return $this->success(
+            data: $result,
+            code: 201
+        );
     }
 
     public function login(LoginRequest $request): JsonResponse
