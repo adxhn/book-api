@@ -16,8 +16,8 @@ class UserWelcome extends Mailable implements ShouldBeUnique
 {
     use Queueable, SerializesModels;
 
-    public int $tries = 3;
-    public int $timeout = 30;
+    public int $tries = 2;
+    public int $timeout = 15;
 
     /**
      * Create a new message instance.

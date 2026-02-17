@@ -52,8 +52,8 @@ class PasswordResetTest extends TestCase
             'password' => $newPassword,
             'password_confirmation' => $newPassword,
         ])
-            ->assertStatus(200)
-            ->assertJson(['status' => trans('passwords.reset')]);
+            ->assertStatus(201)
+            ->assertJson(['message' => trans('passwords.reset')]);
 
         $this->assertTrue(Hash::check($newPassword, $user->fresh()->password));
 
@@ -127,7 +127,7 @@ class PasswordResetTest extends TestCase
             'token' => $resetToken,
             'password' => $newPassword,
             'password_confirmation' => $newPassword,
-        ])->assertOk();
+        ])->assertStatus(201);
 
         $this->assertDatabaseMissing('personal_access_tokens', [
             'tokenable_id' => $user->id,
