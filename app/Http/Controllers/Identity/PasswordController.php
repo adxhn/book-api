@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Identity\ForgotPasswordRequest;
 use App\Http\Requests\Identity\ResetPasswordRequest;
 use App\Services\Identity\PasswordService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class PasswordController extends Controller
@@ -14,7 +15,7 @@ class PasswordController extends Controller
         protected PasswordService $service,
     ) {}
 
-    public function forgotPassword(ForgotPasswordRequest $request)
+    public function forgotPassword(ForgotPasswordRequest $request): JsonResponse
     {
         $data = $request->validated();
         $message = $this->service->forgotPassword($data['email']);
@@ -25,7 +26,7 @@ class PasswordController extends Controller
         );
     }
 
-    public function resetPassword(ResetPasswordRequest $request)
+    public function resetPassword(ResetPasswordRequest $request): JsonResponse
     {
         $data = $request->validated();
         $message = $this->service->resetPassword($data);
@@ -34,10 +35,5 @@ class PasswordController extends Controller
             message: $message,
             code: 201
         );
-    }
-
-    public function resetPasswordForm(Request $request)
-    {
-        return 'form view';
     }
 }
