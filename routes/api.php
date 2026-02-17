@@ -23,9 +23,9 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
 });
 
 /**
+ * ai'ya verified email için queue gerekli mi sorulacak
  * too many attempts hatası türkçeleştirelecek
  * hoşgeldin e-postasına verified link eklenecek
- * ai'ya verified email için queue gerekli mi sorulacak
  * mail verification ile ilgili testler yazılacak
  * oturumlarla ilgili servis yazılacak, logout otma durumları, aktif sessionlar vs
  */
