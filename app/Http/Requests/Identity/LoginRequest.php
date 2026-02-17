@@ -3,9 +3,8 @@
 namespace App\Http\Requests\Identity;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rules\Password;
 
-class RegisterRequest extends FormRequest
+class LoginRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -23,16 +22,8 @@ class RegisterRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
-            'password' => [
-                'required',
-                'string',
-                'confirmed',
-                Password::min(6)
-                    ->letters()
-                    ->numbers()
-                    ->mixedCase(),
-            ],
+            'email' => ['required', 'string', 'email', 'max:255'],
+            'password' => ['required', 'string'],
         ];
     }
 
@@ -44,5 +35,18 @@ class RegisterRequest extends FormRequest
         $this->merge([
             'email' => strtolower(trim($this->email)),
         ]);
+    }
+
+    /**
+     * Get custom messages for validator errors.
+     *
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'email.required' => 'E-posta alanı zorunludur.',
+            'password.required' => 'Şifre alanı zorunludur.',
+        ];
     }
 }

@@ -1,8 +1,8 @@
 <x-mail::message>
 # Merhaba {{ $user->name }},
 
-{{ \App\Constants\Api::APP_NAME }} ailemize hoş geldin! Hesabını başarıyla oluşturduk.
+{{ config('app.name') }} ailemize hoş geldin! Hesabını başarıyla oluşturduk.
 
 Teşekkürler,<br>
-{{ \App\Constants\Api::APP_NAME }}
+{{ config('app.name') }}
 </x-mail::message>

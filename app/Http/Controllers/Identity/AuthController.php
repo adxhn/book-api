@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Identity;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Identity\LoginRequest;
 use App\Http\Requests\Identity\RegisterRequest;
 use App\Services\Identity\AuthService;
 use Illuminate\Http\JsonResponse;
@@ -24,6 +25,25 @@ class AuthController extends Controller
             $validated['password']
         );
 
-        return $this->success($result, 201);
+        return $this->success(
+            message: 'Kayıt işlemi başarılı.',
+            data: $result,
+            code: 201
+        );
+    }
+
+    public function login(LoginRequest $request): JsonResponse
+    {
+        $validated = $request->validated();
+        $result = $this->service->login(
+            $validated['email'],
+            $validated['password']
+        );
+
+        return $this->success(
+            message: 'Giriş işlemi başarılı.',
+            data: $result,
+            code: 201)
+            ;
     }
 }

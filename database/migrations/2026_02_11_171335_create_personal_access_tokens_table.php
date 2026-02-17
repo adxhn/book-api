@@ -21,7 +21,7 @@ return new class extends Migration
             $table->timestamp('expires_at')->nullable()->index();
             $table->timestamps();
 
-            $table->string('ip_address', 45);
+            $table->string('ip_address', 45)->nullable();
             $table->string('user_agent')->nullable();
             $table->string('device_type')->nullable();
             $table->string('device_model')->nullable();

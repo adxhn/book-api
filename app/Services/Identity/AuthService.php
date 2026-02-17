@@ -2,11 +2,16 @@
 
 namespace App\Services\Identity;
 
+use App\Enums\UserStatus;
 use App\Mail\UserWelcome;
+use App\Models\User;
 use App\Repositories\SessionRepository;
 use App\Repositories\UserRepository;
+use App\Resources\AuthResource;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Validation\ValidationException;
 
 class AuthService
 {
@@ -39,15 +44,36 @@ class AuthService
 
             Mail::to($user)->later(now()->addMinute(), new UserWelcome($user));
 
-            return [
-                'user' => [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                ],
-                'token' => $token->plainTextToken,
-            ];
+            return AuthResource::make($user, $token);
         });
+    }
+
+    /**
+     * @param string $email
+     * @param string $password
+     * @return array
+     * @throws ValidationException
+     */
+    public function login(
+        string $email,
+        string $password
+    ): array
+    {
+        $user = User::where('email', '=', $email)->first();
+
+        if (! $user
+            || ! Hash::check($password, $user->password)
+            || $user->user_status !== UserStatus::ACTIVE
+        ) {
+            throw ValidationException::withMessages([
+                'email' => [trans('auth.failed')],
+            ]);
+        }
+
+        $token = $user->createToken('auth-token');
+        $this->sessionRepository->saveDeviceInfo($token);
+
+        return AuthResource::make($user, $token);
     }
 
     private function generateUniqueName(string $email): string
