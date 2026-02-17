@@ -1,5 +1,7 @@
 <?php
 
 return [
-    'success' => 'Doğrulama işlemi başarılı.'
+    'verified' => 'Doğrulama işlemi başarılı.',
+    'already' => 'E-posta zaten doğrulanmış.',
+    'sent' => 'Doğrulama linki gönderildi.'
 ];
