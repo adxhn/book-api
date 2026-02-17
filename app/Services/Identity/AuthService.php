@@ -3,14 +3,13 @@
 namespace App\Services\Identity;
 
 use App\Enums\UserStatus;
-use App\Mail\UserWelcome;
 use App\Models\User;
+use App\Notifications\UserWelcome;
 use App\Repositories\SessionRepository;
 use App\Repositories\UserRepository;
 use App\Resources\AuthResource;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
 
 class AuthService
@@ -42,7 +41,9 @@ class AuthService
             $token = $user->createToken('auth-token');
             $this->sessionRepository->saveDeviceInfo($token);
 
-            Mail::to($user)->later(now()->addMinute(), new UserWelcome($user));
+            $user->notify(
+                (new UserWelcome(VerificationService::verificationUrl($user))
+                )->delay(now()->plus(minutes: 1)));
 
             return AuthResource::make($user, $token);
         });

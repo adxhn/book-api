@@ -2,13 +2,13 @@
 
 namespace App\Notifications;
 
+use DateTime;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
-use Illuminate\Support\Facades\Log;
 
-class PasswordResetNotification extends Notification implements ShouldQueue
+class PasswordReset extends Notification implements ShouldQueue
 {
     use Queueable;
 
@@ -30,6 +30,16 @@ class PasswordResetNotification extends Notification implements ShouldQueue
         $this->token = $token;
     }
 
+    public function backoff(): int
+    {
+        return 3;
+    }
+
+    public function retryUntil(): DateTime
+    {
+        return now()->plus(minutes: 5);
+    }
+
     /**
      * Get the notification's delivery channels.
      *
@@ -45,8 +55,6 @@ class PasswordResetNotification extends Notification implements ShouldQueue
      */
     public function toMail(object $notifiable): MailMessage
     {
-        // frontUrl, gerçek bir url olmak zorunda çünkü kullanıcı bu sayfada şifre değiştirme formu dolduracak
-        // form post olarak ve token da hidden olarak gönderilecek
         $frontendUrl = config('app.url', 'http://localhost:8000');
         $resetUrl = $frontendUrl . '/reset-password?token=' . $this->token;
 
