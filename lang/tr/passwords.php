@@ -13,10 +13,10 @@ return [
     |
     */
 
-    'reset' => 'Parolanız sıfırlandı.',
-    'sent' => 'Parola sıfırlama e-postası gönderildi.',
+    'reset' => 'Şifreniz sıfırlandı.',
+    'sent' => 'Şifre sıfırlama e-postası gönderildi.',
     'throttled' => 'Tekrar denemeden önce lütfen bekleyin.',
-    'token' => 'Parola sıfırlama kodu geçersiz.',
+    'token' => 'Şifre sıfırlama kodu geçersiz.',
     'user' => "Bu e-posta adresi ile kayıtlı kullanıcı bulunamadı.",
 
 ];

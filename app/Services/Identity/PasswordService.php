@@ -2,7 +2,6 @@
 
 namespace App\Services\Identity;
 
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Validation\ValidationException;
@@ -11,18 +10,20 @@ class PasswordService
 {
     /**
      * @param string $email
+     * @return string
      * @throws ValidationException
      */
-    public function forgotPassword(string $email): void
+    public function forgotPassword(string $email): string
     {
-        $this->sendResetMail($email);
+        return $this->sendResetMail($email);
     }
 
     /**
      * @param string $email
+     * @return string
      * @throws ValidationException
      */
-    private function sendResetMail(string $email): void
+    private function sendResetMail(string $email): string
     {
         $status = Password::sendResetLink([
             'email' => $email,
@@ -33,6 +34,8 @@ class PasswordService
                 'email' => [trans($status)],
             ]);
         }
+
+        return trans($status);
     }
 
     public function resetPassword(array $data): string
@@ -51,6 +54,6 @@ class PasswordService
             ]);
         }
 
-        return $status;
+        return trans($status);
     }
 }

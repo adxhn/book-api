@@ -17,17 +17,23 @@ class PasswordController extends Controller
     public function forgotPassword(ForgotPasswordRequest $request)
     {
         $data = $request->validated();
-        $this->service->forgotPassword($data['email']);
+        $message = $this->service->forgotPassword($data['email']);
 
-        return $this->success(code: 201, message: trans('passwords.sent'));
+        return $this->success(
+            message: $message,
+            code: 201
+        );
     }
 
     public function resetPassword(ResetPasswordRequest $request)
     {
         $data = $request->validated();
-        $status = $this->service->resetPassword($data);
+        $message = $this->service->resetPassword($data);
 
-        return response()->json(['status' => trans($status)]);
+        return $this->success(
+            message: $message,
+            code: 201
+        );
     }
 
     public function resetPasswordForm(Request $request)

@@ -26,6 +26,7 @@ class AuthController extends Controller
         );
 
         return $this->success(
+            message: 'Kayıt işlemi başarılı.',
             data: $result,
             code: 201
         );
@@ -39,6 +40,10 @@ class AuthController extends Controller
             $validated['password']
         );
 
-        return $this->success($result, 201);
+        return $this->success(
+            message: 'Giriş işlemi başarılı.',
+            data: $result,
+            code: 201)
+            ;
     }
 }
