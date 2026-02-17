@@ -34,7 +34,7 @@ class IdentityServiceProvider extends ServiceProvider
         });
 
         RateLimiter::for('verificationEmail', function (Request $request) {
-            return Limit::perMinute(3)->by($request->ip());
+            return Limit::perMinute(1)->by($request->ip());
         });
     }
 }

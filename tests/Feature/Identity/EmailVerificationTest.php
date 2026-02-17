@@ -127,14 +127,12 @@ class EmailVerificationTest extends TestCase
 
         $this->actingAs($user);
 
-        for ($i = 0; $i < 3; $i++) {
-            $this->postJson(route('verification.email'))
-                ->assertStatus(200);
-        }
+        $this->postJson(route('verification.email'))
+            ->assertStatus(200);
 
         $response = $this->postJson(route('verification.email'));
         $response->assertStatus(429);
 
-        Notification::assertCount(3);
+        Notification::assertCount(1);
     }
 }
