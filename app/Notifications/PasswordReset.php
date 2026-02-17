@@ -28,6 +28,7 @@ class PasswordReset extends Notification implements ShouldQueue
     public function __construct(string $token)
     {
         $this->token = $token;
+        $this->onQueue('high');
     }
 
     public function backoff(): int
