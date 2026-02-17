@@ -24,7 +24,7 @@ class VerificationController extends Controller
         $request->fulfill();
 
         return $this->success(
-            message: __('verification_success'),
+            message: __('verification.success'),
             code: 201
         );
     }
