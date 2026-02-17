@@ -61,16 +61,12 @@ class AuthService
     {
         $user = User::where('email', '=', $email)->first();
 
-        if (! $user || ! Hash::check($password, $user->password)) {
+        if (! $user
+            || ! Hash::check($password, $user->password)
+            || $user->user_status !== UserStatus::ACTIVE
+        ) {
             throw ValidationException::withMessages([
-                'email' => ['Girdiğiniz bilgiler hatalı.'],
-            ]);
-        }
-
-        // Check if user is active
-        if ($user->user_status !== UserStatus::ACTIVE) {
-            throw ValidationException::withMessages([
-                'email' => ['Böyle bir kullanıcı yok.'],
+                'email' => [trans('auth.failed')],
             ]);
         }
 
