@@ -7,7 +7,7 @@ use App\Mail\UserWelcome;
 use App\Models\User;
 use App\Repositories\SessionRepository;
 use App\Repositories\UserRepository;
-use App\Responses\AuthResponse;
+use App\Resources\AuthResource;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
@@ -44,7 +44,7 @@ class AuthService
 
             Mail::to($user)->later(now()->addMinute(), new UserWelcome($user));
 
-            return AuthResponse::make($user, $token);
+            return AuthResource::make($user, $token);
         });
     }
 
@@ -73,7 +73,7 @@ class AuthService
         $token = $user->createToken('auth-token');
         $this->sessionRepository->saveDeviceInfo($token);
 
-        return AuthResponse::make($user, $token);
+        return AuthResource::make($user, $token);
     }
 
     private function generateUniqueName(string $email): string

@@ -12,7 +12,3 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
         return auth()->user();
     });
 });
-
-/*
- * api responseları standartize olması için incelenecekk
- */
