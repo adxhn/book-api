@@ -2,12 +2,14 @@
 
 namespace Tests\Feature\Identity;
 
-use App\Mail\UserWelcome;
 use App\Models\User;
+use App\Notifications\PasswordReset;
+use App\Notifications\UserWelcome;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
 class RegisterTest extends TestCase
@@ -221,9 +223,9 @@ class RegisterTest extends TestCase
         $this->assertMatchesRegularExpression('/^user_[0-9]{8}$/', $user->name);
     }
 
-    public function test_sends_welcome_email_on_registration(): void
+    public function test_sends_welcome_notification_on_registration(): void
     {
-        Mail::fake();
+        Notification::fake();
 
         $userData = [
             'email' => 'test@example.com',
@@ -235,8 +237,6 @@ class RegisterTest extends TestCase
 
         $user = User::where('email', 'test@example.com')->first();
 
-        Mail::assertQueued(UserWelcome::class, function ($mail) use ($user) {
-            return $mail->hasTo($user->email);
-        });
+        Notification::assertSentTo($user, UserWelcome::class);
     }
 }
