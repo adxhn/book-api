@@ -13,4 +13,9 @@ trait ApiResponser
             'data'    => $data,
         ]), $code);
     }
+
+    public function noContent(): \Illuminate\Http\Response
+    {
+        return response()->noContent();
+    }
 }

@@ -7,7 +7,6 @@ use App\Http\Requests\Identity\ForgotPasswordRequest;
 use App\Http\Requests\Identity\ResetPasswordRequest;
 use App\Services\Identity\PasswordService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 class PasswordController extends Controller
 {
@@ -15,10 +14,10 @@ class PasswordController extends Controller
         protected PasswordService $service,
     ) {}
 
-    public function forgotPassword(ForgotPasswordRequest $request): JsonResponse
+    public function sendResetMail(ForgotPasswordRequest $request): JsonResponse
     {
         $data = $request->validated();
-        $message = $this->service->forgotPassword($data['email']);
+        $message = $this->service->sendResetMail($data['email']);
 
         return $this->success(
             message: $message,

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Resources;
+namespace App\Http\Resources;
 
 use App\Models\User;
 use Laravel\Sanctum\NewAccessToken;

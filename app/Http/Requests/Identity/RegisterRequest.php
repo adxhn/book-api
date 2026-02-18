@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Identity;
 
+use App\Services\Identity\PasswordService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Password;
 
@@ -24,15 +25,7 @@ class RegisterRequest extends FormRequest
     {
         return [
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
-            'password' => [
-                'required',
-                'string',
-                'confirmed',
-                Password::min(6)
-                    ->letters()
-                    ->numbers()
-                    ->mixedCase(),
-            ],
+            'password' => PasswordService::passwordRules()
         ];
     }
 

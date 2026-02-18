@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Route;
 /* Authentication */
 Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:register');
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:login');
-Route::post('/forgot-password', [PasswordController::class, 'forgotPassword']);
+Route::post('/forgot-password', [PasswordController::class, 'sendResetMail']);
 Route::post('/reset-password', [PasswordController::class, 'resetPassword'])->middleware('throttle:resetPassword');
 
 Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
@@ -21,7 +21,8 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
         ->middleware(['signed'])->name('verification.verify');
 
     /* Account */
-    Route::get('/sessions', [AccountController::class, 'sessions']);
+    Route::get('/sessions', [AuthController::class, 'sessions']);
+    Route::delete('/logout-other-devices', [AuthController::class, 'logoutOtherDevices']);
 
     Route::get('/me', function () {
         return auth()->user();
@@ -31,4 +32,5 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
 /**
  * too many attempts hatası türkçeleştirelecek
  * oturumlarla ilgili servis yazılacak, logout otma durumları, aktif sessionlar vs
+ * oturum testleri yazılacak
  */
