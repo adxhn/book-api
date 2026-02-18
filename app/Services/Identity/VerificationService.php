@@ -20,10 +20,6 @@ class VerificationService
         return __('verification.sent');
     }
 
-    /**
-     * @param User $user
-     * @return string
-     */
     public static function verificationUrl(User $user): string
     {
         return URL::temporarySignedRoute(

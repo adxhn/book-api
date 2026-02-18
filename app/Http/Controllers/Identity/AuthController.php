@@ -9,6 +9,7 @@ use App\Http\Resources\SessionResource;
 use App\Services\Identity\AuthService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
 
 class AuthController extends Controller
@@ -17,9 +18,6 @@ class AuthController extends Controller
         protected AuthService $service,
     ) {}
 
-    /**
-     * Register a new user.
-     */
     public function register(RegisterRequest $request): JsonResponse
     {
         $validated = $request->validated();
@@ -50,7 +48,7 @@ class AuthController extends Controller
             ;
     }
 
-    public function sessions(Request $request)
+    public function sessions(Request $request): AnonymousResourceCollection
     {
         return SessionResource::collection(
             $this->service->sessions($request->user())

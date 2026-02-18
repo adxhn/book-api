@@ -20,7 +20,7 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
     Route::get('/email/verify/{id}/{hash}', [VerificationController::class, 'verifyEmail'])
         ->middleware(['signed'])->name('verification.verify');
 
-    /* Account */
+    /* Sessions */
     Route::get('/sessions', [AuthController::class, 'sessions']);
     Route::delete('/logout-other-devices', [AuthController::class, 'logoutOtherDevices']);
 

@@ -8,11 +8,6 @@ use Illuminate\Validation\ValidationException;
 
 class PasswordService
 {
-    /**
-     * @param string $email
-     * @return string
-     * @throws ValidationException
-     */
     public function sendResetMail(string $email): string
     {
         $status = Password::sendResetLink([

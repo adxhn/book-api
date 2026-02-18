@@ -19,13 +19,6 @@ class AuthService
         protected SessionRepository $sessionRepository,
     ) {}
 
-    /**
-     * Register a new user and create an authentication token.
-     *
-     * @param string $email
-     * @param string $password
-     * @return array
-     */
     public function register(
         string $email,
         string $password,
@@ -49,12 +42,6 @@ class AuthService
         });
     }
 
-    /**
-     * @param string $email
-     * @param string $password
-     * @return array
-     * @throws ValidationException
-     */
     public function login(
         string $email,
         string $password
@@ -77,19 +64,11 @@ class AuthService
         return AuthResource::make($user, $token);
     }
 
-    /**
-     * @param User $user
-     * @return \Illuminate\Database\Eloquent\Collection
-     */
     public function sessions(User $user): \Illuminate\Database\Eloquent\Collection
     {
         return $user->tokens()->orderBy('last_used_at', 'desc')->get();
     }
 
-    /**
-     * @param User $user
-     * @return int
-     */
     public function logoutOtherDevices(User $user): int
     {
         return $user->tokens()->where('id', '!=', $user->currentAccessToken()->id)->delete();
