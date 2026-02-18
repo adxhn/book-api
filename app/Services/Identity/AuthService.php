@@ -74,6 +74,11 @@ class AuthService
         return $user->tokens()->where('id', '!=', $user->currentAccessToken()->id)->delete();
     }
 
+    public function logout(User $user): int
+    {
+        return $user->tokens()->where('id', '=', $user->currentAccessToken()->id)->delete();
+    }
+
     private function generateUniqueName(string $email): string
     {
         // Email'in @ öncesi kısmını al

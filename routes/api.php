@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\Identity\AccountController;
 use App\Http\Controllers\Identity\AuthController;
 use App\Http\Controllers\Identity\PasswordController;
 use App\Http\Controllers\Identity\VerificationController;
@@ -22,7 +21,8 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
 
     /* Sessions */
     Route::get('/sessions', [AuthController::class, 'sessions']);
-    Route::delete('/logout-other-devices', [AuthController::class, 'logoutOtherDevices']);
+    Route::post('/logout-other-devices', [AuthController::class, 'logoutOtherDevices']);
+    Route::post('/logout', [AuthController::class, 'logout']);
 
     Route::get('/me', function () {
         return auth()->user();
