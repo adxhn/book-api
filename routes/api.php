@@ -31,6 +31,5 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
 
 /**
  * too many attempts hatası türkçeleştirelecek
- * oturumlarla ilgili servis yazılacak, logout otma durumları, aktif sessionlar vs
  * oturum testleri yazılacak
  */
