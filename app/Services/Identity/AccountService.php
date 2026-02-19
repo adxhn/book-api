@@ -3,6 +3,7 @@
 namespace App\Services\Identity;
 
 use App\Models\User;
+use Illuminate\Support\Facades\Hash;
 
 class AccountService
 {
@@ -21,5 +22,16 @@ class AccountService
         }
 
         return 'E-posta adresiniz aynı';
+    }
+
+    public function changePassword(string $password, User $user): string
+    {
+        $user->forceFill([
+            'password' => Hash::make($password),
+        ])->save();
+
+        $user->tokens()->where('id', '!=', $user->currentAccessToken()->id)->delete();
+
+        return 'Şifre başarıyla güncellendi.';
     }
 }

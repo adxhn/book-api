@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Identity;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Identity\ChangePasswordRequest;
 use App\Http\Requests\Identity\UpdateEmailRequest;
 use App\Services\Identity\AccountService;
 use Illuminate\Http\JsonResponse;
@@ -24,6 +25,20 @@ class AccountController extends Controller
         return $this->success(
             message: $result,
             data: ['email' => $validated['email']],
+            code: 201
+        );
+    }
+
+    public function changePassword(ChangePasswordRequest $request): JsonResponse
+    {
+        $validated = $request->validated();
+        $result = $this->service->changePassword(
+            $validated['password'],
+            $request->user()
+        );
+
+        return $this->success(
+            message: $result,
             code: 201
         );
     }

@@ -27,6 +27,7 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
 
     /* Account */
     Route::put('/update-email', [AccountController::class, 'updateEmail']);
+    Route::put('/change-password', [AccountController::class, 'changePassword']);
 
     Route::get('/me', function () {
         return auth()->user();
