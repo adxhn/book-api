@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Identity\AccountController;
 use App\Http\Controllers\Identity\AuthController;
 use App\Http\Controllers\Identity\PasswordController;
 use App\Http\Controllers\Identity\VerificationController;
@@ -23,6 +24,9 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
     Route::get('/sessions', [AuthController::class, 'sessions']);
     Route::post('/logout-other-devices', [AuthController::class, 'logoutOtherDevices']);
     Route::post('/logout', [AuthController::class, 'logout']);
+
+    /* Account */
+    Route::put('/update-email', [AccountController::class, 'updateEmail']);
 
     Route::get('/me', function () {
         return auth()->user();
