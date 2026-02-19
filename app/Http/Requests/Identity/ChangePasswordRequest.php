@@ -4,9 +4,8 @@ namespace App\Http\Requests\Identity;
 
 use App\Services\Identity\PasswordService;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rules\Password;
 
-class ResetPasswordRequest extends FormRequest
+class ChangePasswordRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,9 +23,14 @@ class ResetPasswordRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'token' => ['required'],
-            'email' => ['required', 'string', 'email', 'exists:users,email'],
-            'password' => PasswordService::passwordRules()
+            'current_password' => [
+                'required',
+                'current_password'
+            ],
+            'password' => [
+                ...PasswordService::passwordRules(),
+                'different:current_password'
+            ],
         ];
     }
 }

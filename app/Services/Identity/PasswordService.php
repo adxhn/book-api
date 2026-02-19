@@ -8,22 +8,7 @@ use Illuminate\Validation\ValidationException;
 
 class PasswordService
 {
-    /**
-     * @param string $email
-     * @return string
-     * @throws ValidationException
-     */
-    public function forgotPassword(string $email): string
-    {
-        return $this->sendResetMail($email);
-    }
-
-    /**
-     * @param string $email
-     * @return string
-     * @throws ValidationException
-     */
-    private function sendResetMail(string $email): string
+    public function sendResetMail(string $email): string
     {
         $status = Password::sendResetLink([
             'email' => $email,
@@ -55,5 +40,18 @@ class PasswordService
         }
 
         return trans($status);
+    }
+
+    public static function passwordRules(): array
+    {
+        return [
+            'required',
+            'string',
+            'confirmed',
+            \Illuminate\Validation\Rules\Password::min(6)
+                ->letters()
+                ->numbers()
+                ->mixedCase(),
+        ];
     }
 }

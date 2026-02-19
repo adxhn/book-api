@@ -7,13 +7,16 @@ use Illuminate\Support\Facades\Hash;
 
 class UserRepository
 {
-    public function create(
+    public function create
+    (
         string $name,
         string $email,
-        string $password): User
+        string $password
+    ): User
     {
         return User::create([
             'name' => $name,
+            'display_name' => $name,
             'email' => $email,
             'password' => Hash::make($password),
         ]);

@@ -32,5 +32,9 @@ class IdentityServiceProvider extends ServiceProvider
         RateLimiter::for('resetPassword', function (Request $request) {
             return Limit::perMinute(2)->by($request->ip());
         });
+
+        RateLimiter::for('verificationEmail', function (Request $request) {
+            return Limit::perMinutes(2, 1)->by($request->ip());
+        });
     }
 }

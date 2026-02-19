@@ -3,7 +3,7 @@
 namespace Tests\Feature\Identity;
 
 use App\Models\User;
-use App\Notifications\PasswordResetNotification;
+use App\Notifications\PasswordReset;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Hash;
@@ -30,7 +30,7 @@ class PasswordResetTest extends TestCase
             'email' => $user->email,
         ]);
 
-        Notification::assertSentTo($user, PasswordResetNotification::class);
+        Notification::assertSentTo($user, PasswordReset::class);
     }
 
     public function test_email_is_required_for_password_reset_request(): void
@@ -52,8 +52,8 @@ class PasswordResetTest extends TestCase
             'password' => $newPassword,
             'password_confirmation' => $newPassword,
         ])
-            ->assertStatus(200)
-            ->assertJson(['status' => trans('passwords.reset')]);
+            ->assertStatus(201)
+            ->assertJson(['message' => trans('passwords.reset')]);
 
         $this->assertTrue(Hash::check($newPassword, $user->fresh()->password));
 
@@ -127,7 +127,7 @@ class PasswordResetTest extends TestCase
             'token' => $resetToken,
             'password' => $newPassword,
             'password_confirmation' => $newPassword,
-        ])->assertOk();
+        ])->assertStatus(201);
 
         $this->assertDatabaseMissing('personal_access_tokens', [
             'tokenable_id' => $user->id,

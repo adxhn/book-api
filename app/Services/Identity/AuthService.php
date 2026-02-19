@@ -3,14 +3,13 @@
 namespace App\Services\Identity;
 
 use App\Enums\UserStatus;
-use App\Mail\UserWelcome;
+use App\Http\Resources\AuthResource;
 use App\Models\User;
+use App\Notifications\UserWelcome;
 use App\Repositories\SessionRepository;
 use App\Repositories\UserRepository;
-use App\Resources\AuthResource;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
 
 class AuthService
@@ -20,13 +19,6 @@ class AuthService
         protected SessionRepository $sessionRepository,
     ) {}
 
-    /**
-     * Register a new user and create an authentication token.
-     *
-     * @param string $email
-     * @param string $password
-     * @return array
-     */
     public function register(
         string $email,
         string $password,
@@ -42,18 +34,14 @@ class AuthService
             $token = $user->createToken('auth-token');
             $this->sessionRepository->saveDeviceInfo($token);
 
-            Mail::to($user)->later(now()->addMinute(), new UserWelcome($user));
+            $user->notify(
+                (new UserWelcome(VerificationService::verificationUrl($user))
+                )->delay(now()->plus(minutes: 1)));
 
             return AuthResource::make($user, $token);
         });
     }
 
-    /**
-     * @param string $email
-     * @param string $password
-     * @return array
-     * @throws ValidationException
-     */
     public function login(
         string $email,
         string $password
@@ -74,6 +62,21 @@ class AuthService
         $this->sessionRepository->saveDeviceInfo($token);
 
         return AuthResource::make($user, $token);
+    }
+
+    public function sessions(User $user): \Illuminate\Database\Eloquent\Collection
+    {
+        return $user->tokens()->orderBy('last_used_at', 'desc')->get();
+    }
+
+    public function logoutOtherDevices(User $user): int
+    {
+        return $user->tokens()->where('id', '!=', $user->currentAccessToken()->id)->delete();
+    }
+
+    public function logout(User $user): int
+    {
+        return $user->tokens()->where('id', '=', $user->currentAccessToken()->id)->delete();
     }
 
     private function generateUniqueName(string $email): string
