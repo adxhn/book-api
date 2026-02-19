@@ -23,11 +23,7 @@ class User extends Authenticatable implements CanResetPasswordContract, MustVeri
      *
      * @var list<string>
      */
-    protected $fillable = [
-        'name',
-        'email',
-        'password',
-    ];
+    protected $guarded = [];
 
     /**
      * The attributes that should be hidden for serialization.
