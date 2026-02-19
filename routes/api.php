@@ -19,7 +19,7 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
     Route::get('/email/verify/{id}/{hash}', [VerificationController::class, 'verifyEmail'])
         ->middleware(['signed'])->name('verification.verify');
 
-    /* Sessions */
+    /* Auth */
     Route::get('/sessions', [AuthController::class, 'sessions']);
     Route::post('/logout-other-devices', [AuthController::class, 'logoutOtherDevices']);
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -31,5 +31,4 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
 
 /**
  * too many attempts hatası türkçeleştirelecek
- * oturum testleri yazılacak
  */
