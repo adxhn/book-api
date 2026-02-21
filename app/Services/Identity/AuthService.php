@@ -5,6 +5,7 @@ namespace App\Services\Identity;
 use App\Enums\UserStatus;
 use App\Http\Resources\AuthResource;
 use App\Models\User;
+use Laravel\Socialite\Contracts\User as SocialUser;
 use App\Notifications\UserWelcome;
 use App\Repositories\SessionRepository;
 use App\Repositories\UserRepository;
@@ -67,7 +68,7 @@ class AuthService
     public function socialAuth
     (
         string $provider,
-        User $socialUser
+        SocialUser $socialUser
     )
     {
         return DB::transaction(function () use ($provider, $socialUser) {
@@ -103,27 +104,19 @@ class AuthService
 
     private function generateUniqueName(string $email): string
     {
-        // Email'in @ öncesi kısmını al
         $baseName = strtolower(explode('@', $email)[0]);
-        // Özel karakterleri temizle (sadece harf, rakam ve alt çizgi bırak)
         $baseName = preg_replace('/[^a-z0-9_]/', '', $baseName);
 
-        // Eğer baseName boşsa veya 5 karakterden küçükse varsayılan bir değer kullan
         if (empty($baseName) || strlen($baseName) < 5) {
             $baseName = 'user';
         }
 
-        // Eğer içinde hiç alt çizgi (_) yoksa, sona ekle
         if (!str_contains($baseName, '_')) {
             $baseName .= '_';
         }
 
-        // Benzersiz bir son ek oluştur
-        // microtime(true) -> 1707315453.1234 gibi bir sayı döner
-        // Noktayı atıp sadece rakamları alıyoruz
         $micro = str_replace('.', '', microtime(true));
 
-        // Son 8 hanesini alıyoruz (çünkü en hızlı değişen kısım sonudur)
         return $baseName . substr($micro, -8);
     }
 }

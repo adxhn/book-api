@@ -2,10 +2,10 @@
 
 namespace App\Enums;
 
-enum SocialiteProviders: int
+enum SocialiteProviders: string
 {
-    case GOOGLE = 1;
-    case APPLE = 2;
+    case GOOGLE = 'google';
+    case APPLE = 'apple';
 
     public static function toArray(): array
     {

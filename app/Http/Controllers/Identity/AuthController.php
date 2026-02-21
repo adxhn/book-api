@@ -73,7 +73,7 @@ class AuthController extends Controller
     public function socialAuth(Request $request, string $provider): JsonResponse
     {
         $user = Socialite::driver('google')->user();
-        $result = $this->service->socialAuth($user, $provider);
+        $result = $this->service->socialAuth($provider, $user);
 
         return $this->success(
             message: 'Kayıt işlemi başarılı.',
