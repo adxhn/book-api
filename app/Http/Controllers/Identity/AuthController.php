@@ -11,6 +11,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
+use Laravel\Socialite\Facades\Socialite;
 
 class AuthController extends Controller
 {
@@ -67,5 +68,17 @@ class AuthController extends Controller
         $this->service->logout($request->user());
 
         return $this->noContent();
+    }
+
+    public function socialAuth(Request $request, string $provider): JsonResponse
+    {
+        $user = Socialite::driver('google')->user();
+        $result = $this->service->socialAuth($provider, $user);
+
+        return $this->success(
+            message: 'Kayıt işlemi başarılı.',
+            data: $result,
+            code: 201
+        );
     }
 }
