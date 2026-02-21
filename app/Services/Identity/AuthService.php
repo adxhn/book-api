@@ -64,6 +64,28 @@ class AuthService
         return AuthResource::make($user, $token);
     }
 
+    public function socialAuth
+    (
+        string $provider,
+        User $socialUser
+    )
+    {
+        return DB::transaction(function () use ($provider, $socialUser) {
+            $user = $this->userRepository->socialAuth(
+                $socialUser->email,
+                $this->generateUniqueName($socialUser->email),
+                $socialUser->name,
+                $provider,
+                $socialUser->id
+            );
+
+            $token = $user->createToken('auth-token');
+            $this->sessionRepository->saveDeviceInfo($token);
+
+            return AuthResource::make($user, $token);
+        });
+    }
+
     public function sessions(User $user): \Illuminate\Database\Eloquent\Collection
     {
         return $user->tokens()->orderBy('last_used_at', 'desc')->get();
