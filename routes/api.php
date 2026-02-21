@@ -5,6 +5,7 @@ use App\Http\Controllers\Identity\AuthController;
 use App\Http\Controllers\Identity\PasswordController;
 use App\Http\Controllers\Identity\VerificationController;
 use Illuminate\Support\Facades\Route;
+use Laravel\Socialite\Facades\Socialite;
 
 /* Authentication */
 Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:register');
