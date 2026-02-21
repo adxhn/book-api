@@ -15,7 +15,7 @@ return [
     |
     */
 
-    'default' => \App\Constants\Api::CACHE_DRIVER,
+    'default' => env('CACHE_STORE', 'database'),
 
     /*
     |--------------------------------------------------------------------------
@@ -74,7 +74,7 @@ return [
 
         'redis' => [
             'driver' => 'redis',
-            'connection' => \App\Constants\Redis::CACHE_CONNECTION_NAME,
+            'connection' => env('REDIS_CACHE_CONNECTION', 'cache'),
             'lock_connection' => env('REDIS_CACHE_LOCK_CONNECTION', 'default'),
         ],
 
@@ -112,6 +112,6 @@ return [
     |
     */
 
-    'prefix' => env('CACHE_PREFIX', Str::slug((string) \App\Constants\Api::APP_NAME).'-cache-'),
+    'prefix' => env('CACHE_PREFIX', Str::slug((string) env('APP_NAME', 'laravel')).'-cache-'),
 
 ];

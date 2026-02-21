@@ -16,7 +16,7 @@ return [
     |
     */
 
-    'default' => \App\Constants\DB::CONNECTION,
+    'default' => env('DB_CONNECTION', 'sqlite'),
 
     /*
     |--------------------------------------------------------------------------
@@ -45,15 +45,15 @@ return [
 
         'mysql' => [
             'driver' => 'mysql',
-            'url' => \App\Constants\DB::URL,
-            'host' => \App\Constants\DB::HOST,
-            'port' => \App\Constants\DB::PORT,
-            'database' => \App\Constants\DB::DATABASE,
-            'username' => \App\Constants\DB::USER_NAME,
-            'password' => \App\Constants\DB::USER_PASS,
+            'url' => env('DB_URL'),
+            'host' => env('DB_HOST', '127.0.0.1'),
+            'port' => env('DB_PORT', '3306'),
+            'database' => env('DB_DATABASE', 'laravel'),
+            'username' => env('DB_USERNAME', 'root'),
+            'password' => env('DB_PASSWORD', ''),
             'unix_socket' => env('DB_SOCKET', ''),
-            'charset' => \App\Constants\DB::CHARSET,
-            'collation' => \App\Constants\DB::COLLATION,
+            'charset' => env('DB_CHARSET', 'utf8mb4'),
+            'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),
             'prefix' => '',
             'prefix_indexes' => true,
             'strict' => true,
@@ -144,21 +144,21 @@ return [
 
     'redis' => [
 
-        'client' => \App\Constants\Redis::CLIENT,
+        'client' => env('REDIS_CLIENT', 'phpredis'),
 
         'options' => [
             'cluster' => env('REDIS_CLUSTER', 'redis'),
-            'prefix' => env('REDIS_PREFIX', Str::slug((string) \App\Constants\Api::APP_NAME).'-database-'),
+            'prefix' => env('REDIS_PREFIX', Str::slug((string) env('APP_NAME', 'laravel')).'-database-'),
             'persistent' => env('REDIS_PERSISTENT', false),
         ],
 
         'default' => [
-            'url' => \App\Constants\Redis::URL,
-            'host' => \App\Constants\Redis::HOST,
-            'username' => \App\Constants\Redis::USER,
-            'password' => \App\Constants\Redis::PASSWORD,
-            'port' => \App\Constants\Redis::PORT,
-            'database' => \App\Constants\Redis::DB_INDEX,
+            'url' => env('REDIS_URL'),
+            'host' => env('REDIS_HOST', '127.0.0.1'),
+            'username' => env('REDIS_USERNAME'),
+            'password' => env('REDIS_PASSWORD'),
+            'port' => env('REDIS_PORT', '6379'),
+            'database' => env('REDIS_DB_INDEX', '0'),
             'max_retries' => env('REDIS_MAX_RETRIES', 3),
             'backoff_algorithm' => env('REDIS_BACKOFF_ALGORITHM', 'decorrelated_jitter'),
             'backoff_base' => env('REDIS_BACKOFF_BASE', 100),
@@ -166,12 +166,12 @@ return [
         ],
 
         'cache' => [
-            'url' => \App\Constants\Redis::URL,
-            'host' => \App\Constants\Redis::HOST,
-            'username' => \App\Constants\Redis::USER,
-            'password' => \App\Constants\Redis::PASSWORD,
-            'port' => \App\Constants\Redis::PORT,
-            'database' => \App\Constants\Redis::CACHE_INDEX,
+            'url' => env('REDIS_URL'),
+            'host' => env('REDIS_HOST', '127.0.0.1'),
+            'username' => env('REDIS_USERNAME'),
+            'password' => env('REDIS_PASSWORD'),
+            'port' => env('REDIS_PORT', '6379'),
+            'database' => env('REDIS_CACHE_INDEX', '1'),
             'max_retries' => env('REDIS_MAX_RETRIES', 3),
             'backoff_algorithm' => env('REDIS_BACKOFF_ALGORITHM', 'decorrelated_jitter'),
             'backoff_base' => env('REDIS_BACKOFF_BASE', 100),

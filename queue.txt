@@ -1,0 +1,429 @@
+Class
+- block_for = 5 : CPU kullanımını azaltır çünkü worker sürekli "Yeni iş var mı?" diye Redis'e sormak yerine 5 saniye boyunce bekler. (genelde 5 veya 10 seçilir, 0 yapılmamalı).
+
+- withoutRelations() : Eğer bir Job'a model gönderiliyorsa ve o modelin o an yüklü olan comments,
+author gibi ilişkilerine Job içinde ihtiyaç yoksa, mutlaka #[WithoutRelations] kullanılmalı. Performans için kritik.
+
+- ShouldBeUnique: Örneğin bir kullanıcıya "Doğrulama E-postası" gönderen bir Job varsa ve kullanıcı butona ardı ardına 10 kez basarsa;
+ShouldBeUnique ve uniqueId() { return $this->user->id; } kullanarak kuyrukta 10 tane mail birikmesini engelleyebiliriz.
+
+- ShouldBeEncrypted: Eğer Job içinde şifre sıfırlama linki veya hassas bir kişisel veri varsa,
+ShouldBeEncrypted ekleyerek Redis üzerinde bu verilerin düz metin (plain text) olarak görünmesini engelleyebiliriz.
+
+Dispatch
+- delayedDispatch: kullanıcı kayıt olduktan 1-2 sonra mail atmak daha hemen göndermekten daha insanidir.
+Veya kullanıcı şifremi unuttum bağlantısını kullandıktan 10 dk sonra "bu işlemi siz mi yaptınız?" gibi bir güvenlik maili atılabilir.
+
+- dispatchSync: iş bitmeden response dönmez, http'yi bloklar. Kritik ve anlık işlemler için garanti odaklı kullanılır (şifre değiştirme, ödeme gibi şlemler).
+
+- deferred: Neden kullanılır?: php isteği işler ve nginx'e yanıt dönmesini söyler, response hemen döner. Ancak php worker o an job'ı işlemekle meşgul olmaya devam eder.
+
+- background: deferred'a benzer çalışır ama php worker işi başka bir php process'ine devreder.
+
+deferred ve background farkı:
+Örneğin küçük bir veritabanı işlemi yapılacaksa, log kaydı atılacaksa veya bir bildirim gönderilecekse bunu background ile yapmak;
+bir vidayı sıkmak için koca bir vinç çağırmaya benzer. deferred ile o anki akışın sonunda hemen halletmek çok daha verimlidir.
+Çünkü 1 saniyenin altında sürecek olan küçük bir iş için koca bir php worker ayağa kaldırmak gereksiz ram ve cpu tüketimi demektir.
+Sms, mail veya başka bir api'ye bağlanmak gibi uzun sürecek işlerde background kullanılmalıdır.
+
+transaction & after commit:
+Register işleminin transaction ile yapıldığını düşünürsek, after commit olmadan job çalıstırmak,
+job'ın veritabanına bakıp o kaydı bulamama tehlikesini doğurur (çünkü işlemler senkron ve milisaniyelik ilerler).
+after_commit şunu söyler: Ben bir Job fırlatsam bile acele etme. Şu an devam eden veritabanı işlemi (transaction) başarıyla bitene kadar bekle, sonra Job'ı gönder.
+
+Job Chaining:
+Diyelim ki bir kurumsal kayıt API var. Süreç çok uzun ve birbirine bağlı:
+
+public function approveCorporateAccount(Request $request): JsonResponse
+{
+    // ... doğrulama işlemleri ...
+
+    Bus::chain([
+        new ValidateTaxNumber($company),      // 1. Vergi numarasını sorgula
+        new CreateCompanyWorkspace($company), // 2. Çalışma alanı oluştur (1 başarılıysa)
+        new AssignAdminRoles($user),         // 3. Yetkileri ata (2 başarılıysa)
+        new SendCorporateWelcomeEmail($user), // 4. Mail gönder (3 başarılıysa)
+    ])->catch(function (Throwable $e) {
+        // Herhangi biri patlarsa burası çalışır
+        Log::error("Kurumsal onay zinciri koptu: " . $e->getMessage());
+    })->dispatch();
+
+    return response()->json(['message' => 'Onay süreci başlatıldı, tamamlandığında bilgilendirileceksiniz.']);
+}
+Mimari Fayda:
+Hata Takibi: Hangi aşamada kalındığını net bilirsin.
+Temiz Kod: Job'lar birbirini çağırmak zorunda kalmaz (spagetti kod olmaz).
+Güvenilirlik: Bir adım başarısızsa sonraki adımlar asla çalışmaz, veritabanın ve sistemin tutarlı kalır.
+
+Queue
+Şifre sıfırlama (OTP) SMS'i bekleyen bir kullanıcı ile sistemdeki eski logları temizleyen bir Job aynı sırada beklememeli.
+OTP işini ->onQueue('high') şeridine,
+Log temizleme işini ->onQueue('low') şeridine atarız.
+Worker'ına "Önce high kuyruğunu temizle, boş kalırsan low'a bak" dersin. Böylece kritik API süreçlerin asla aksamaz.
+
+Connection
+Bazen bazı işleri kendi sunucunda yapmak yerine dış bir sisteme (Amazon SQS vb.) yıkmak isteyebilirsin.
+Senin için anlamı: Kendi sunucunu (Redis) sadece çok hızlı biten Identity işlemleri için kullanıp,
+çok ağır video işleme veya toplu mail gönderimi gibi işleri ->onConnection('sqs') diyerek başka bir servise paslayabilirsin.
+
+$tries
+Bazı hatalar geçicidir (örneğin SMS servisinin 2 saniyeliğine çevrimdışı olması).
+Tek bir denemede pes etmek yerine $tries = 3 diyerek sisteme şans veririz. Ama sonsuza kadar denemezsin ki kuyruk şişmesin.
+
+retryUntil
+Bazı işlerin bir "son kullanma tarihi" vardır. Örneğin şifre sıfırlama linki içeren bir mail gönderiyorsan ve bu link 15 dakika geçerliyse,
+o Job'ın 20 dakika sonra gönderilmesinin bir anlamı yoktur. retryUntil ile "Bu işi 15 dakika boyunca dene, olmazsa çöpe at" diyerek sistemi temiz tutarsın.
+
+$maxExceptions
+kodun içinde max 3 kez exception fırlatırılırsa job durur.
+
+$timeout
+Bir "Profil Fotoğrafı Boyutlandırma" Job'ına $timeout = 30 vererek, eğer bir dosya bozuksa ve PHP onu işlerken sonsuz döngüye girerse,
+sunucunun o süreci öldürmesini sağlarsın. Bu, tek sunucunun ayakta kalması için bir emniyet kemeridir.
+
+Exceptionlar ve Release'ler
+Dış bir api'ye veya kaynağa bağlanarak çalışan joblar beklenmedik durumlardan dolayı hatayla karşılaşabilir. Örneğin dış kaynak 429 döndü.
+$release->(30) diyerek 30 saniye sonra tekrar dene diyebiliriz.
+
+brew services start mysql && brew services start redis
+
+
+
+
+  later() metodu iki parametre alır:
+
+   1. $delay (DateTimeInterface): İşin ne zaman çalıştırılması gerektiğini belirten bir tarih-saat nesnesi. Genellikle now()->addMinutes(10) veya Carbon::parse('tomorrow 10:00') gibi bir ifadeyle oluşturulur.
+   2. $job: Kuyruğa eklenecek olan işin kendisi (örneğin new UserWelcome($user)).
+
+  Arka Planda Nasıl Çalışır?
+
+   1. Siz Mail::to($user)->later(now()->addMinutes(5), new UserWelcome($user)); kodunu çağırdığınızda, Laravel bu e-posta gönderme görevini hemen worker'ların alıp işleyeceği "hazır" kuyruğuna koymaz.
+   2. Bunun yerine, görevi Redis içerisindeki özel bir "gecikmeli" (delayed) kuyruğa ekler. Bu kuyruk, her bir işin ne zaman çalıştırılması gerektiğini belirten bir zaman damgası (timestamp) ile birlikte tutulur.
+   3. Laravel kuyruk worker'ı (php artisan queue:work komutu) sürekli olarak bu "gecikmeli" kuyruğu kontrol eder.
+   4. Zaman damgası şimdiki zamana ulaşmış veya geçmiş olan bir iş bulduğunda, o işi "gecikmeli" kuyruktan alıp normal, "hazır" kuyruğa taşır.
+   5. "Hazır" kuyruğa taşındığı anda, boşta olan ilk worker bu işi alır ve çalıştırır (yani e-postayı gönderir).
+
+  later() ile delay() Arasındaki Fark Nedir?
+
+  Bu ikisi sıkça karıştırılır ama aralarında ince bir fark vardır:
+
+   * `later(DateTimeInterface $zaman)`: İşi belirli bir tarih ve saate erteler.
+       * later(now()->addMinutes(10)) -> "Tam olarak 10 dakika sonra çalıştır."
+       * later(Carbon::parse('2026-12-25 00:00:00')) -> "Noel'de çalıştır."
+   * `delay(int $saniye)`: İşi şu andan itibaren belirtilen saniye kadar erteler.
+       * delay(600) -> "600 saniye (10 dakika) bekle, sonra çalıştır."
+
+  Sonuç olarak her ikisi de bir işi geciktirmek için kullanılır, ancak later() mutlak bir zaman noktası belirtirken, delay() göreceli bir süre belirtir. Genellikle later() daha okunaklı ve esnek bir kullanım sunar.
+
+   * public int $tries = 3;
+       * Ne işe yarar? Bu işin (job) kuyrukta toplamda kaç kez deneneceğini belirtir. İlk deneme de buna dahildir. Yani 1 deneme + 2 yeniden deneme = toplam 3 deneme hakkı vardır.
+       * Nasıl çalışır? Eğer iş başarısız olursa (bir exception fırlatırsa veya zaman aşımına uğrarsa), Laravel bu işi "başarısız" olarak işaretlemeden önce kuyruğa geri bırakır. $tries değeri kadar bu işlem tekrarlanır.
+
+   * public int $timeout = 30;
+       * Ne işe yarar? Bu, kuyruk worker'ının bu işin tek bir denemesini ne kadar sürede tamamlaması gerektiğini belirtir (saniye cinsinden).
+       * Nasıl çalışır? Worker bu işi aldığında bir zamanlayıcı başlatır. E-posta gönderme işlemi (örneğin harici bir SMTP sunucusuna bağlanma) 30 saniyeden uzun sürerse, worker bu denemeyi "zaman aşımına uğradı" olarak kabul eder ve işlemi sonlandırır.
+
+   * public bool $failOnTimeout = true;
+       * Ne işe yarar? Yukarıdaki $timeout ayarının sonucunu belirler.
+       * Nasıl çalışır? Eğer bu true ise (ki varsayılanı budur ve genellikle doğru ayardır), zaman aşımına uğrayan bir deneme başarısızlık olarak sayılır. Bu da $tries hakkından bir düşürür. Eğer false olsaydı, iş zaman aşımına uğrasa bile başarısız sayılmazdı (bu çok nadir kullanılan bir durumdur).
+
+   * public int $maxExceptions = 3;
+       * Ne işe yarar? Bu, işin kalıcı olarak "başarısız" sayılmadan önce toplamda kaç tane yakalanamayan istisna (exception) fırlatabileceğini belirler.
+       * Nasıl çalışır? Bu, $tries'dan bağımsız bir ek güvenlik katmanıdır. Eğer iş, $tries hakkı bitmeden $maxExceptions sayısına ulaşırsa, yine de kalıcı olarak başarısız sayılır. Bu, sürekli aynı hatayı veren "zehirli" işlerin kuyruğu tıkamasını engeller. Sizin senaryonuzda $tries ve $maxExceptions aynı
+         olduğu için davranışları benzer olacaktır.
+
+  ---
+
+  Senaryo: İlk Denemede 500 Hatası Alınırsa Ne Olur?
+
+  Adım adım gidelim:
+
+   1. 1. Deneme (Attempt 1):
+       * Kuyruk worker'ı (queue:work komutu) UserWelcome mail işini kuyruktan alır.
+       * İşi çalıştırmaya başlar. E-postayı göndermeye çalışırken, bağlı olduğu e-posta servisinden 500 Internal Server Error yanıtı alır. Bu durum, Laravel'in mail altyapısında bir Exception fırlatılmasına neden olur.
+       * Bu Exception yakalanmadığı için iş başarısız olur.
+       * Worker kontrol eder:
+           * $tries hakkı kaçtı? -> 3. Daha 2 hak var.
+           * $maxExceptions hakkı kaçtı? -> 3. Daha 2 hak var.
+           * Zaman aşımı oldu mu? -> Hayır, hata anında geldi.
+       * Sonuç: Worker, işi kuyruğa geri bırakır (release). İş hemen tekrar denenmez. Laravel, "backoff" (geri çekilme) adı verilen bir strateji uygular ve işi tekrar denemeden önce belirli bir süre (varsayılan olarak 60 saniye gibi, ayarlanabilir) bekler. Bu, çökmüş bir servise sürekli istek atıp durumu
+         daha da kötüleştirmeyi önler.
+
+   2. 2. Deneme (Attempt 2 - Yaklaşık 60 saniye sonra):
+       * Bekleme süresi dolunca iş tekrar kuyrukta "denenebilir" hale gelir ve bir worker tarafından alınır.
+       * E-posta servisi hala 500 hatası veriyorsa, süreç tamamen aynı şekilde tekrarlanır. İş tekrar başarısız olur ve daha 2 deneme hakkı kalmışken 1'e düşer.
+       * İş, genellikle daha uzun bir bekleme süresiyle (backoff süresi artabilir) tekrar kuyruğa bırakılır.
+
+   3. 3. ve Son Deneme (Attempt 3):
+       * İş son kez denenir. Yine 500 hatası alınırsa:
+       * Worker kontrol eder:
+           * $tries hakkı bitti mi? -> Evet (1/3 -> 2/3 -> 3/3).
+       * Nihai Sonuç: İş artık kalıcı olarak başarısız (permanently failed) kabul edilir. Kuyruktan silinir ve projenizdeki failed_jobs veritabanı tablosuna bir kayıt olarak eklenir. Bu kayıtta işin tüm bilgileri ve hataya neden olan Exception detayı bulunur. Bu sayede bir geliştirici olarak sorunu
+         inceleyebilir, düzelttikten sonra php artisan queue:retry <job-id> komutuyla işi yeniden çalıştırabilirsiniz.
+
+  1. `tries` için:
+   * Genel Kullanım (Tavsiye Edilen): 3 ila 5 arası
+       * 3 (`$tries = 3;`): Çoğu uygulama için harika bir varsayılan değerdir. Geçici bir ağ sorununu veya bir servisin anlık olarak kapalı olmasını tolere etmek için yeterlidir.
+       * 5 (`$tries = 5;`): İşlem daha kritikse (örneğin, şifre sıfırlama, fatura gönderimi gibi kullanıcı işlemini doğrudan etkileyen e-postalar) ve e-posta servisinizde ara sıra daha uzun süreli kesintiler oluyorsa 5'e çıkarmak mantıklıdır. Bu, işin başarısız olmadan önce daha uzun bir süre (artan
+         backoff süreleriyle birlikte saatler) denemesine olanak tanır.
+       * 1'den Fazla Olmalı: Neredeyse hiçbir zaman 1 olmamalıdır. Tek deneme hakkı, kuyruk sisteminin hata toleransı avantajını tamamen ortadan kaldırır.
+
+  2. `maxExceptions` için:
+   * `tries` ile Aynı Değer: Çoğu durumda, $maxExceptions değerini $tries değeriyle aynı tutmak en basit ve en etkili yaklaşımdır.
+       * public int $tries = 3;
+       * public int $maxExceptions = 3;
+       * Neden? Bu, "bir iş ya X kez denendiği için ya da X kez hata fırlattığı için başarısız olur" anlamına gelir. Davranışı tahmin etmeyi kolaylaştırır. tries hakkı bitmeden maxExceptions'a ulaşma senaryosu genellikle daha karmaşık ve nadir durumlar içindir.
+
+   * Ne Zaman Farklı Olabilir?
+       * Eğer bir işin belirli bir hatayı tekrar tekrar vermesi durumunda daha erken pes etmesini istiyorsanız $maxExceptions değerini $tries'dan daha düşük ayarlayabilirsiniz. Örneğin, bir API'den sürekli "Geçersiz API Anahtarı" hatası alıyorsanız, bunu 5 kez denemenin bir anlamı yoktur. Bu durumda
+         $maxExceptions = 1 veya 2 ayarlamak, yapılandırma hatasını daha hızlı fark etmenizi sağlar. Ancak bu genellikle işin kendi içinde özel bir mantıkla (örneğin retryUntil() metoduyla) daha iyi yönetilir.
+
+  3. `timeout` için:
+   * Genel Kullanım (Tavsiye Edilen): 30 ila 60 saniye arası
+       * 30 (`$timeout = 30;`): E-posta gönderimi gibi harici bir servisle iletişim kuran işler için iyi bir başlangıç noktasıdır. Çoğu SMTP sunucusu birkaç saniye içinde yanıt verir. 30 saniye, ağ gecikmeleri için yeterli bir tampon sağlar.
+       * 60 (`$timeout = 60;`): Eğer e-posta içeriğini oluşturmak (örneğin bir PDF faturası eklemek) zaman alıyorsa veya e-posta servisiniz yavaş olabiliyorsa, bunu 60 saniyeye çıkarmak güvenli bir seçimdir.
+
+
+
+ Evet, kesinlikle işe yarar ve kuyruk tabanlı sistemlerde son derece faydalı ve modern bir "best practice"dir.
+
+
+  Bunun işe yaramasının temel nedeni, kuyruğa eklediğiniz bir Mailable'ın (örneğin UserWelcome sınıfı) arka planda aslında bir Job (İş) nesnesine dönüştürülmesidir. Bu nedenle, Job'lar için tasarlanmış olan tüm özellikler, kuyruğa eklenmiş Mailable'lar için de geçerlidir.
+
+  Job Middleware Nedir ve Nasıl Bir Fayda Sağlar?
+
+
+  Tıpkı Route Middleware'in bir HTTP isteğini hedefine (controller'a) ulaşmadan önce veya sonra belirli adımlardan geçirmesi gibi, Job Middleware de bir kuyruk işinin (job) handle metodu çalıştırılmadan önce veya sonra belirli adımlardan geçmesini sağlar.
+
+
+  Bu, işin asıl mantığını (e-posta göndermek) temiz tutarken, işin etrafındaki çapraz kesen endişeleri (cross-cutting concerns) ayrı, yeniden kullanılabilir sınıflara ayırmanıza olanak tanır.
+
+
+  UserWelcome mailiniz için sağlayabileceği bazı somut faydalar şunlardır:
+
+
+  1. Rate Limiting / Throttling (En Yaygın Kullanım):
+      * Sorun: Harici e-posta servisiniz (Mailgun, SendGrid vb.) dakikada gönderebileceğiniz e-posta sayısını sınırlıyor olabilir (örneğin dakikada 100 e-posta). Çok fazla e-postayı aynı anda göndermeye çalışırsanız API'dan hata alırsınız.
+      * Çözüm: Bir "Rate Limiting" middleware'i yazarsınız. Bu middleware, e-postayı göndermeden önce Redis'i kontrol eder. Eğer limit aşıldıysa, e-postayı göndermeyi denemez, bunun yerine işi daha sonra tekrar denemek üzere belirli bir gecikmeyle kuyruğa geri bırakır ($job->release(60)). Bu, e-posta
+        gönderme mantığınızı kirletmeden API limitlerine uymanızı sağlar.
+
+
+  2. Kaynak Kilitleme (Resource Locking):
+      * Sorun: Belki de e-posta gönderimi, belirli bir kullanıcıyla ilgili başka bir işlemin tamamlanmasını beklemelidir.
+      * Çözüm: Bir middleware, işe başlamadan önce o kullanıcı için bir kilit (lock) oluşturur. Eğer kilit zaten varsa, işi gecikmeyle kuyruğa geri bırakır. İş bittiğinde kilidi serbest bırakır. Bu, WithoutOverlapping'in daha esnek bir versiyonu gibi düşünülebilir.
+
+
+  3. Özel Kurulum ve Temizleme (Custom Setup and Teardown):
+      * Sorun: E-posta gönderimi için geçici olarak belirli bir konfigürasyon ayarını değiştirmeniz gerekiyor olabilir.
+      * Çözüm: Middleware, iş başlamadan önce config(['mail.driver' => 'special_driver']) gibi bir ayar yapar, iş bittikten sonra ($next($job)'den sonra) bu ayarı eski haline getirir.
+
+
+  4. Gelişmiş Loglama ve İzleme:
+      * Çözüm: Bir middleware, her e-posta gönderme işinin ne zaman başladığını, ne kadar sürdüğünü ve ne zaman bittiğini loglayabilir. Bu, performans takibi için harika bir yoldur.
+
+  Örnek: Mail için Rate Limiting Middleware'i
+
+
+  Diyelim ki e-posta servisinize dakikada en fazla 10 istek gönderebiliyoruz.
+
+  1. Middleware'i Oluşturun:
+
+
+   1 php artisan make:middleware ThrottleEmails
+
+
+  2. Middleware Mantığını Yazın (`app/Http/Middleware/ThrottleEmails.php`):
+  (Not: Bu bir Job Middleware olduğu için Http/Middleware klasöründe olması şart değil, app/Jobs/Middleware gibi bir klasör de oluşturabilirsiniz.)
+
+
+    1 <?php
+    2
+    3 namespace App\Http\Middleware;
+    4
+    5 use Illuminate\Support\Facades\Redis;
+    6
+    7 class ThrottleEmails
+    8 {
+    9     /**
+   10      * Process the queued job.
+   11      *
+   12      * @param  \Closure(object): void  $next
+   13      */
+   14     public function handle(object $job, \Closure $next): void
+   15     {
+   16         Redis::throttle('emails')
+   17             ->block(0)->allow(10)->every(60)
+   18             ->then(function () use ($job, $next) {
+   19                 // Kilit alındı, işin devam etmesine izin ver.
+   20                 $next($job);
+   21             }, function () use ($job) {
+   22                 // Kilit alınamadı.
+   23                 // Bu işi 60 saniye sonra tekrar denemek üzere kuyruğa geri bırak.
+   24                 $job->release(60);
+   25             });
+   26     }
+   27 }
+
+
+  3. Middleware'i Mailable Sınıfınıza Ekleyin (`app/Mail/UserWelcome.php`):
+
+
+    1 <?php
+    2
+    3 namespace App\Mail;
+    4
+    5 // ... diğer use ifadeleri
+    6 use App\Http\Middleware\ThrottleEmails;
+    7
+    8 class UserWelcome extends Mailable implements ShouldQueue
+    9 {
+   10     // ... diğer kodlar
+   11
+   12     /**
+   13      * Get the middleware the job should pass through.
+   14      *
+   15      * @return array<int, object>
+   16      */
+   17     public function middleware(): array
+   18     {
+   19         return [new ThrottleEmails];
+   20     }
+   21 }
+
+
+  İşte bu kadar! Artık her UserWelcome e-postası kuyruktan çalıştırılmadan önce bu rate limiting kontrolünden geçecek. E-posta gönderme kodunuz (UserWelcome sınıfının içi) bu karmaşık logicten tamamen habersiz ve tertemiz kalacak.
+
+
+  Özetle: Job Middleware, kuyruk tabanlı işlemleriniz için (e-postalar dahil) son derece güçlü, temiz ve yeniden kullanılabilir bir soyutlama katmanı sunar. Karmaşık kuralları (rate limiting, locking vb.) işin asıl mantığından ayırmak için kullanılır ve bu kesinlikle bir "best practice"dir.
+
+✦ Kesinlikle evet! Bu, Job Middleware'in ne kadar güçlü olduğunu gösteren mükemmel bir kullanım senaryosudur.
+
+
+  Amacınız, e-posta gönderme işleminin temel mantığını (UserWelcome sınıfının içeriği) aynı tutarken, kullanıcının abonelik türüne (premium veya standart) göre davranışını dinamik olarak değiştirmektir. Middleware, bu tür iş kurallarını uygulamak için tam olarak doğru yerdir.
+
+
+  İşte premium ve standart kullanıcılar için e-posta gönderimini Job Middleware ile nasıl farklılaştırabileceğinize dair birkaç somut ve pratik örnek:
+
+
+  1. Farklı Mailer/Servis Kullanımı
+
+
+  Belki de premium kullanıcıların e-postalarını daha hızlı ve güvenilir olan pahalı bir servis (örn: Postmark) üzerinden, standart kullanıcılarınkini ise daha ucuz bir toplu gönderim servisi (örn: Amazon SES) üzerinden göndermek istiyorsunuz.
+
+
+  Middleware (`UsePremiumMailer.php`):
+
+
+    1 <?php
+    2
+    3 namespace App\Jobs\Middleware;
+    4
+    5 use App\Models\User;
+    6 use Illuminate\Support\Facades\Config;
+    7
+    8 class UsePremiumMailer
+    9 {
+   10     public function handle(object $job, \Closure $next): void
+   11     {
+   12         // $job->user, Mailable sınıfınızdaki public User property'sinden gelir.
+   13         if ($job->user instanceof User && $job->user->isPremium()) {
+   14             // Geçici olarak bu iş için mailer'ı değiştir.
+   15             Config::set('mail.mailer', 'postmark');
+   16         }
+   17
+   18         // İşi çalıştır (değiştirilmiş veya varsayılan config ile).
+   19         $next($job);
+   20
+   21         // Not: Middleware'den sonra config'i eski haline getirmeye gerek yoktur,
+   22         // çünkü her iş kendi process'inde çalışır ve bu değişiklik diğerlerini etkilemez.
+   23     }
+   24 }
+
+
+  Mailable Sınıfınızda Kullanımı (`UserWelcome.php`):
+
+
+   1 public function middleware(): array
+   2 {
+   3     return [new UsePremiumMailer];
+   4 }
+
+
+  Sonuç: Artık UserWelcome e-postası ne zaman bir premium kullanıcı için çalıştırılsa, otomatik olarak postmark mailer'ını kullanacak, diğer tüm kullanıcılar için ise varsayılan mailer'ı kullanmaya devam edecektir. E-posta sınıfınızın kendisi bu mantıktan tamamen habersizdir.
+
+  2. Rate Limiting'i Premium Kullanıcılar İçin Atlatma
+
+
+  Daha önceki rate limiting (Throttling) örneğimizi geliştirelim. Premium kullanıcıların bu limitten etkilenmemesini isteyebilirsiniz.
+
+  Güncellenmiş Middleware (`ThrottleEmails.php`):
+
+
+    1 public function handle(object $job, \Closure $next): void
+    2 {
+    3     // Eğer kullanıcı premium ise, rate limiting'i tamamen atla.
+    4     if ($job->user instanceof User && $job->user->isPremium()) {
+    5         $next($job);
+    6         return;
+    7     }
+    8
+    9     // Standart kullanıcılar için rate limiting uygula...
+   10     Redis::throttle('emails')
+   11         ->block(0)->allow(10)->every(60)
+   12         ->then(function () use ($job, $next) {
+   13             $next($job);
+   14         }, function () use ($job) {
+   15             $job->release(60);
+   16         });
+   17 }
+
+
+  Sonuç: Aynı middleware şimdi akıllıca davranıyor. Premium kullanıcıların e-postaları anında gönderilirken, standart kullanıcılar dakikada 10 e-posta limitine takılmaya devam ediyor.
+
+  ---
+
+
+  Önemli Not: Farklı Kuyruk Kullanımı
+
+
+  Premium kullanıcıların e-postalarını daha hızlı işlenen bir "yüksek öncelikli" kuyruğa göndermek isteyebilirsiniz.
+
+
+  Bu senaryo Job Middleware için uygun değildir. Çünkü bir Job Middleware, iş zaten bir kuyruğa eklendikten sonra, worker tarafından çalıştırılacağı zaman devreye girer. Yani işin hangi kuyrukta olduğunu değiştirmek için çok geçtir.
+
+
+  Bunun yerine, bu mantığı işi kuyruğa eklerken (dispatch ederken) uygulamalısınız.
+
+
+  Doğru Yaklaşım (Middleware Olmadan):
+
+
+    1 // Bir Controller veya Service sınıfı içinde
+    2 use App\Mail\UserWelcome;
+    3 use Illuminate\Support\Facades\Mail;
+    4
+    5 // ...
+    6
+    7 if ($user->isPremium()) {
+    8     // Premium kullanıcıyı yüksek öncelikli kuyruğa gönder
+    9     Mail::to($user)->onQueue('high-priority')->send(new UserWelcome($user));
+   10 } else {
+   11     // Standart kullanıcıyı varsayılan kuyruğa gönder
+   12     Mail::to($user)->onQueue('default')->send(new UserWelcome($user));
+   13 }
+
+  Özet ve En İyi Pratik
+
+
+   * Job Middleware'i Şunlar İçin Kullanın:
+       * İş çalışırken davranışını değiştirmek (farklı config kullanmak, rate limiting uygulamak).
+       * İşin çalışmasını koşullu olarak engellemek veya geciktirmek.
+       * İş çalışmadan önce/sonra ekstra adımlar eklemek (loglama, kilit mekanizmaları).
+
+
+   * İşi Kuyruğa Eklerken (Dispatch Time) Mantığını Şunlar İçin Kullanın:
+       * İşin hangi kuyruğa gideceğini belirlemek (onQueue()).
+       * İşin ne kadar gecikmeyle çalışacağını belirlemek (delay(), later()).
+
+
+  Sonuç olarak, evet, Job Middleware premium ve standart kullanıcılar arasında ayrım yapmak için son derece güçlü ve temiz bir yöntemdir. Bu, iş mantığınızı (kullanıcı tipi) altyapısal endişelerden (hangi mailer, hangi limit) ayırmanızı sağlar.

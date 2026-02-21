@@ -1,0 +1,14 @@
+{
+    "model": {
+        "name": "gemini-2.5-flash-lite"
+    },
+    "mcpServers": {
+        "laravel-boost": {
+            "command": "php",
+            "args": [
+                "artisan",
+                "boost:mcp"
+            ]
+        }
+    }
+}
