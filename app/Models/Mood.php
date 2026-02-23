@@ -7,4 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 class Mood extends Model
 {
     protected $guarded = [];
+
+    public $timestamps = false;
 }
