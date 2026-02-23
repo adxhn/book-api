@@ -40,10 +40,10 @@ class DatabaseSeeder extends Seeder
             }
         });
 
-        Publisher::factory(100)->create();
-        Author::factory(100)->create();
+        Publisher::factory(50)->create();
+        Author::factory(50)->create();
 
-        Book::factory(1000)
+        Book::factory(500)
             ->create();
 
         User::factory(10)->create();
