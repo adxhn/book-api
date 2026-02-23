@@ -27,9 +27,9 @@ class BookFactory extends Factory
             'image_url' => $this->faker->imageUrl(),
             'publish_date' => $this->faker->date(),
             'page_number' => random_int(100, 300),
-            'category_id' => \App\Models\Category::inRandomOrder()->first()?->id,
-            'author_id' => \App\Models\Author::inRandomOrder()->first()?->id,
-            'publisher_id' => \App\Models\Publisher::inRandomOrder()->first()?->id
+            'category_id' => random_int(1, 19),
+            'author_id' => random_int(1, 100),
+            'publisher_id' => random_int(1, 100),
         ];
     }
 }
