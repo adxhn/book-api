@@ -9,7 +9,17 @@ class SearchManager
 {
     public function smartSearch(string $param)
     {
-        return $this->relevance($param);
+        if (Cache::has($param)) {
+            return Cache::get($param);
+        }
+
+        $result = $this->relevance($param);
+
+        if (mb_strlen($param) > 5) {
+            Cache::put($param, $result, 300);
+        }
+
+        return $result;
     }
 
     /**
