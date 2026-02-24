@@ -16,12 +16,14 @@ class SearchResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->id,
             'title' => $this->title,
             'slug' => $this->slug,
             'isbn' => $this->isbn,
             'image_url' => $this->image_url,
             'publish_date' => Carbon::create($this->publish_date)->format('d.m.Y'),
+            'category' => new CategoryResource($this->category),
+            'publisher' => new PublisherResource($this->publisher),
+            'author' => new AuthorResource($this->author)
         ];
     }
 }
