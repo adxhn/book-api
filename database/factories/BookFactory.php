@@ -17,19 +17,17 @@ class BookFactory extends Factory
      */
     public function definition(): array
     {
-        $title = $this->faker->sentence();
-
         return [
-            'title' => $title,
-            'slug' => Str::slug($title),
+            'title' => $this->faker->sentence(3),
+            'slug' => $this->faker->slug(3),
             'description' => $this->faker->text(),
             'isbn' => $this->faker->isbn13(),
             'image_url' => $this->faker->imageUrl(),
             'publish_date' => $this->faker->date(),
             'page_number' => random_int(100, 300),
             'category_id' => random_int(1, 19),
-            'author_id' => random_int(1, 100),
-            'publisher_id' => random_int(1, 100),
+            'author_id' => random_int(1, 50),
+            'publisher_id' => random_int(1, 50),
         ];
     }
 }

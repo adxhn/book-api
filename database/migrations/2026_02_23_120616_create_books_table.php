@@ -26,7 +26,7 @@ return new class extends Migration
             $table->enum('book_status', \App\Enums\BookStatus::values())->default(\App\Enums\BookStatus::ACTIVE);
             $table->timestamps();
 
-            $table->index('title');
+            $table->fullText('title');
         });
     }
 
