@@ -1,12 +1,12 @@
 <?php
 
+use App\Http\Controllers\Book\BookController;
 use App\Http\Controllers\Search\SearchController;
 use App\Http\Controllers\Identity\AccountController;
 use App\Http\Controllers\Identity\AuthController;
 use App\Http\Controllers\Identity\PasswordController;
 use App\Http\Controllers\Identity\VerificationController;
 use Illuminate\Support\Facades\Route;
-use Laravel\Socialite\Facades\Socialite;
 
 /* Authentication */
 Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:register');
@@ -33,4 +33,7 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
 
     /* Search */
     Route::get('/search', [SearchController::class, 'index']);
+
+    /* Book */
+    Route::get('/book/{slug}', [BookController::class, 'show']);
 });
