@@ -34,7 +34,7 @@ class SearchManager
             ->map(fn($term) => "+$term*")
             ->implode(' ');
 
-        return Book::whereFullText('title', $searchableTerm, ['mode' => 'boolean'])->limit(10)->get();
+        return Book::with(['category', 'author', 'publisher'])->whereFullText('title', $searchableTerm, ['mode' => 'boolean'])->limit(10)->get();
     }
 
     /**
@@ -43,7 +43,7 @@ class SearchManager
      */
     protected function relevance(string $param)
     {
-        return Book::select('*')
+        return Book::with(['category', 'author', 'publisher'])->select('*')
             ->selectRaw(
                 "MATCH(title) AGAINST(? IN BOOLEAN MODE) as score",
                 [$param]

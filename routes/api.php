@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\Book\SearchController;
+use App\Http\Controllers\Search\SearchController;
 use App\Http\Controllers\Identity\AccountController;
 use App\Http\Controllers\Identity\AuthController;
 use App\Http\Controllers\Identity\PasswordController;

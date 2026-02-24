@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Controllers\Book;
+namespace App\Http\Controllers\Search;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Book\SearchRequest;
-use App\Models\Book;
+use App\Http\Resources\SearchResource;
 use App\Services\Search\SearchManager;
 
 class SearchController extends Controller
@@ -16,6 +16,8 @@ class SearchController extends Controller
     public function index(SearchRequest $request)
     {
         $param = $request->validated();
-        return $this->service->smartSearch($param['q']);
+        $result = $this->service->smartSearch($param['q']);
+
+        return SearchResource::collection($result);
     }
 }
