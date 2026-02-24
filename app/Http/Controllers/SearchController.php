@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\Search\SearchRequest;
+use App\Http\Requests\SearchRequest;
 use App\Http\Resources\Search\AuthorResource;
 use App\Http\Resources\Search\BookResource;
 use App\Http\Resources\Search\PublisherResource;
