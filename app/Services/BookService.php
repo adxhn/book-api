@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Book;
+namespace App\Services;
 
 use App\Repositories\BookRepository;
 use Illuminate\Support\Facades\Cache;

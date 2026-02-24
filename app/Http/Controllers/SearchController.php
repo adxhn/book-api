@@ -1,13 +1,12 @@
 <?php
 
-namespace App\Http\Controllers\Search;
+namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Http\Requests\Search\SearchRequest;
 use App\Http\Resources\Search\AuthorResource;
 use App\Http\Resources\Search\BookResource;
 use App\Http\Resources\Search\PublisherResource;
-use App\Services\Search\SearchManager;
+use App\Services\SearchManager;
 
 class SearchController extends Controller
 {
