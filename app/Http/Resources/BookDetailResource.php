@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Resources\Book;
+namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -23,9 +23,17 @@ class BookDetailResource extends JsonResource
             'publish_date' => Carbon::create($this->publish_date)->format('d.m.Y'),
             'category' => [
                 'name' => $this->category->name,
+                'slug' => $this->category->slug,
             ],
-            'publisher' => new PublisherResource($this->publisher),
-            'author' => new AuthorResource($this->author)
+            'publisher' => [
+                'name' => $this->publisher->name,
+                'slug' => $this->publisher->slug,
+            ],
+            'author' => [
+                'name' => $this->author->name,
+                'slug' => $this->author->slug,
+                'photo_url' => $this->author->photo_url,
+            ],
         ];
     }
 }

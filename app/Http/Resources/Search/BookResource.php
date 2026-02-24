@@ -21,9 +21,19 @@ class BookResource extends JsonResource
             'isbn' => $this->isbn,
             'image_url' => $this->image_url,
             'publish_date' => Carbon::create($this->publish_date)->format('d.m.Y'),
-            'category' => new CategoryResource($this->category),
-            'publisher' => new PublisherResource($this->publisher),
-            'author' => new AuthorResource($this->author)
+            'category' => [
+                'name' => $this->category->name,
+                'slug' => $this->category->slug,
+            ],
+            'publisher' => [
+                'name' => $this->publisher->name,
+                'slug' => $this->publisher->slug,
+            ],
+            'author' => [
+                'name' => $this->author->name,
+                'slug' => $this->author->slug,
+                'photo_url' => $this->author->photo_url,
+            ],
         ];
     }
 }
