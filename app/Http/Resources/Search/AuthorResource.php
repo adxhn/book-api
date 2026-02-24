@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Http\Resources;
+namespace App\Http\Resources\Search;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class PublisherResource extends JsonResource
+class AuthorResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -16,7 +16,8 @@ class PublisherResource extends JsonResource
     {
         return [
             'name' => $this->name,
-            'slug' => $this->slug
+            'slug' => $this->slug,
+            'photo_url' => $this->photo_url
         ];
     }
 }

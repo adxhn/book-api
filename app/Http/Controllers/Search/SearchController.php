@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Search;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Book\SearchRequest;
-use App\Http\Resources\SearchResource;
+use App\Http\Resources\Search\AuthorResource;
+use App\Http\Resources\Search\BookResource;
+use App\Http\Resources\Search\PublisherResource;
 use App\Services\Search\SearchManager;
 
 class SearchController extends Controller
@@ -18,6 +20,11 @@ class SearchController extends Controller
         $param = $request->validated();
         $result = $this->service->smartSearch($param['q']);
 
-        return SearchResource::collection($result);
+        return $this->success(data:
+            [
+                'books' => BookResource::collection($result['books']),
+                'authors' => AuthorResource::collection($result['authors']),
+                'publishers' => PublisherResource::collection($result['publishers']),
+            ]);
     }
 }

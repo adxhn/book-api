@@ -2,24 +2,24 @@
 
 namespace App\Services\Search;
 
+use App\Models\Author;
 use App\Models\Book;
+use App\Models\Publisher;
 use Illuminate\Support\Facades\Cache;
 
 class SearchManager
 {
     public function smartSearch(string $param)
     {
-        if (Cache::has($param)) {
-            return Cache::get($param);
-        }
+        $books = $this->relevanceBooks($param);
+        $authors = $this->authors($param);
+        $publishers = $this->publishers($param);
 
-        $result = $this->relevance($param);
-
-        if (mb_strlen($param) > 5) {
-            Cache::put($param, $result, 300);
-        }
-
-        return $result;
+        return [
+            'books' => $books,
+            'authors' => $authors,
+            'publishers' => $publishers,
+        ];
     }
 
     /**
@@ -27,7 +27,7 @@ class SearchManager
      * Kelime sonuna ek alsa da yakalar (Wildcard).
      * Kelime sırası önemli değil.
      */
-    protected function matchAll(string $param)
+    protected function matchAllBooks(string $param)
     {
         $searchableTerm = collect(explode(' ', $param))
             ->filter() // Boşlukları temizler
@@ -41,7 +41,7 @@ class SearchManager
      * booleanSearch'ın gelişmiş halidir ve skora göre sıralama yapar.
      * Düşük skorlu veriyi eler.
      */
-    protected function relevance(string $param)
+    protected function relevanceBooks(string $param)
     {
         return Book::with(['category', 'author', 'publisher'])->select('*')
             ->selectRaw(
@@ -59,9 +59,19 @@ class SearchManager
      * Kullanıcının yazdığı kelimeler tam olarak o sırayla bulunur.
      * Like aramasına benzer bir yapıda (kullanıcı deneyimi düşük kalabilir)
      */
-    protected function exactPhrase(string $param)
+    protected function exactPhraseBooks(string $param)
     {
         $exactTerm = '"' . $param . '"';
         return Book::whereFullText('title', $exactTerm, ['mode' => 'boolean'])->limit(10)->get();
+    }
+
+    protected function authors(string $param)
+    {
+        return Author::where('name', 'LIKE', $param . '%')->limit(10)->get();
+    }
+
+    protected function publishers(string $param)
+    {
+        return Publisher::where('name', 'LIKE', $param . '%')->limit(10)->get();
     }
 }
