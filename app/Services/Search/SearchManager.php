@@ -11,15 +11,23 @@ class SearchManager
 {
     public function smartSearch(string $param)
     {
+        if (Cache::has($param)) {
+            return Cache::get($param);
+        }
+
         $books = $this->relevanceBooks($param);
         $authors = $this->authors($param);
         $publishers = $this->publishers($param);
 
-        return [
+        $result = [
             'books' => $books,
             'authors' => $authors,
             'publishers' => $publishers,
         ];
+
+        Cache::put($param, $result, 300);
+
+        return $result;
     }
 
     /**
