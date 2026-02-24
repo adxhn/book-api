@@ -11,8 +11,10 @@ class SearchManager
 {
     public function smartSearch(string $param)
     {
-        if (Cache::has($param)) {
-            return Cache::get($param);
+        $cacheKey = 'search_' . $param;
+
+        if (Cache::has($cacheKey)) {
+            return Cache::get($cacheKey);
         }
 
         $books = $this->relevanceBooks($param);
@@ -25,7 +27,7 @@ class SearchManager
             'publishers' => $publishers,
         ];
 
-        Cache::put($param, $result, 300);
+        Cache::put($cacheKey, $result, 300);
 
         return $result;
     }
