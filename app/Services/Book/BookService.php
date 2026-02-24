@@ -2,6 +2,7 @@
 
 namespace App\Services\Book;
 
+use App\Models\Book;
 use App\Repositories\BookRepository;
 use Illuminate\Support\Str;
 
@@ -11,7 +12,7 @@ class BookService
         protected BookRepository $bookRepository
     ) {}
 
-    public function detail(string $slug)
+    public function detail(string $slug): Book
     {
         if (strlen($slug) > 255) {
             abort(404);
