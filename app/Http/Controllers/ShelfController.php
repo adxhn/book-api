@@ -21,6 +21,7 @@ class ShelfController extends Controller
     public function add(AddBookToShelfRequest $request): \Illuminate\Http\JsonResponse
     {
         $data = $request->validated();
-        return $this->success(data: $this->service->add($request->user(), $data['book_id']));
+        $this->service->add($request->user(), $data['book_slug']);
+        return $this->success(message: 'Book added successfully', code: 201);
     }
 }

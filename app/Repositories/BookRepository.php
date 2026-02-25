@@ -14,4 +14,12 @@ class BookRepository
             ->where('book_status', '=', BookStatus::ACTIVE->value)
             ->firstOrFail();
     }
+
+    public function getIdBySlug(string $slug): int
+    {
+        $book = Book::where('slug', $slug)
+            ->firstOrFail();
+
+        return $book->id;
+    }
 }

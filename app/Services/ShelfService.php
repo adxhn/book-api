@@ -3,12 +3,12 @@
 namespace App\Services;
 
 use App\Models\User;
-use App\Repositories\ShelfRepository;
+use App\Repositories\BookRepository;
 
 class ShelfService
 {
     public function __construct(
-        protected ShelfRepository $shelfRepository,
+        protected BookRepository $bookRepository,
     ) {}
 
     public function get(User $user)
@@ -16,8 +16,9 @@ class ShelfService
         return $user->shelves()->with('book')->paginate(10);
     }
 
-    public function add(User $user, int $bookId)
+    public function add(User $user, string $slug)
     {
+        $bookId = $this->bookRepository->getIdBySlug($slug);
         return $user->shelves()->with('book')->updateOrCreate(['book_id' => $bookId]);
     }
 }

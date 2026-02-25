@@ -22,7 +22,7 @@ class AddBookToShelfRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'book_id' => 'required|integer|exists:books,id',
+            'book_slug' => 'required|string|max:255|exists:books,slug',
         ];
     }
 }
