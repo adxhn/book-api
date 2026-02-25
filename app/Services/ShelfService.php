@@ -19,6 +19,12 @@ class ShelfService
     public function add(User $user, string $slug)
     {
         $bookId = $this->bookRepository->getIdBySlug($slug);
-        return $user->shelves()->with('book')->updateOrCreate(['book_id' => $bookId]);
+        return $user->shelves()->updateOrCreate(['book_id' => $bookId]);
+    }
+
+    public function delete(User $user, string $slug)
+    {
+        $bookId = $this->bookRepository->getIdBySlug($slug);
+        return $user->shelves()->where(['book_id' => $bookId])->delete();
     }
 }

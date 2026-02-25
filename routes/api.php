@@ -41,5 +41,5 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
     /* Shelf */
     Route::get('/shelf', [ShelfController::class, 'index']);
     Route::post('/shelf', [ShelfController::class, 'add']);
-    Route::delete('/shelf', [ShelfController::class, 'delete']);
+    Route::delete('/shelf/{slug}', [ShelfController::class, 'delete']);
 });

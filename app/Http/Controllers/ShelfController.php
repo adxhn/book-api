@@ -24,4 +24,10 @@ class ShelfController extends Controller
         $this->service->add($request->user(), $data['book_slug']);
         return $this->success(message: 'Book added successfully', code: 201);
     }
+
+    public function delete(Request $request, string $slug)
+    {
+        $this->service->delete($request->user(), $slug);
+        return $this->noContent();
+    }
 }
