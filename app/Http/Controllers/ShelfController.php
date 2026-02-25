@@ -1,0 +1,33 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Requests\AddBookToShelfRequest;
+use App\Http\Resources\ShelfResource;
+use App\Services\ShelfService;
+use Illuminate\Http\Request;
+
+class ShelfController extends Controller
+{
+    public function __construct(
+        protected ShelfService $service,
+    ) {}
+
+    public function index(Request $request)
+    {
+        return ShelfResource::collection($this->service->get($request->user()));
+    }
+
+    public function add(AddBookToShelfRequest $request): \Illuminate\Http\JsonResponse
+    {
+        $data = $request->validated();
+        $this->service->add($request->user(), $data['book_slug']);
+        return $this->success(message: 'Book added successfully', code: 201);
+    }
+
+    public function delete(Request $request, string $slug)
+    {
+        $this->service->delete($request->user(), $slug);
+        return $this->noContent();
+    }
+}

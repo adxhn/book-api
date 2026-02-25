@@ -1,11 +1,12 @@
 <?php
 
-use App\Http\Controllers\Book\BookController;
-use App\Http\Controllers\Search\SearchController;
+use App\Http\Controllers\BookController;
 use App\Http\Controllers\Identity\AccountController;
 use App\Http\Controllers\Identity\AuthController;
 use App\Http\Controllers\Identity\PasswordController;
 use App\Http\Controllers\Identity\VerificationController;
+use App\Http\Controllers\SearchController;
+use App\Http\Controllers\ShelfController;
 use Illuminate\Support\Facades\Route;
 
 /* Authentication */
@@ -36,4 +37,9 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
 
     /* Book */
     Route::get('/book/{slug}', [BookController::class, 'show']);
+
+    /* Shelf */
+    Route::get('/shelf', [ShelfController::class, 'index']);
+    Route::post('/shelf', [ShelfController::class, 'add']);
+    Route::delete('/shelf/{slug}', [ShelfController::class, 'delete']);
 });

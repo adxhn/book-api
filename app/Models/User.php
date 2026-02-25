@@ -6,6 +6,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\UserStatus;
 use App\Notifications\PasswordReset;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -52,5 +53,10 @@ class User extends Authenticatable implements CanResetPasswordContract, MustVeri
     public function sendPasswordResetNotification($token): void
     {
         $this->notify(new PasswordReset($token));
+    }
+
+    public function shelves(): HasMany
+    {
+        return $this->hasMany(Shelf::class);
     }
 }

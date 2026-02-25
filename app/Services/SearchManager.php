@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Search;
+namespace App\Services;
 
 use App\Models\Author;
 use App\Models\Book;
