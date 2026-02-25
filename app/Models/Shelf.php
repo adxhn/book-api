@@ -14,6 +14,6 @@ class Shelf extends Model
 
     public function book(): BelongsTo
     {
-        return $this->belongsTo(Book::class);
+        return $this->belongsTo(Book::class)->with(['category', 'author', 'publisher']);
     }
 }

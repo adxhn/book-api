@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\User;
 use App\Repositories\ShelfRepository;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ShelfService
 {
@@ -12,8 +11,13 @@ class ShelfService
         protected ShelfRepository $shelfRepository,
     ) {}
 
-    public function get(User $user): HasMany
+    public function get(User $user)
     {
-        return $this->shelfRepository->get($user);
+        return $user->shelves()->with('book')->paginate(10);
+    }
+
+    public function add(User $user, int $bookId)
+    {
+        return $user->shelves()->with('book')->updateOrCreate(['book_id' => $bookId]);
     }
 }
