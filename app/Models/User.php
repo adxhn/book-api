@@ -55,8 +55,8 @@ class User extends Authenticatable implements CanResetPasswordContract, MustVeri
         $this->notify(new PasswordReset($token));
     }
 
-    public function shelves(): HasMany
+    public function userBooks(): HasMany
     {
-        return $this->hasMany(Shelf::class);
+        return $this->hasMany(UserBook::class);
     }
 }

@@ -5,8 +5,8 @@ namespace Database\Seeders;
 use App\Models\Author;
 use App\Models\Book;
 use App\Models\Publisher;
-use App\Models\Shelf;
 use App\Models\User;
+use App\Models\UserBook;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -49,6 +49,6 @@ class DatabaseSeeder extends Seeder
 
         User::factory(10)->create();
 
-        Shelf::factory(250)->create();
+        UserBook::factory(250)->create();
     }
 }

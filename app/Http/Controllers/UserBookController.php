@@ -2,23 +2,23 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\AddBookToShelfRequest;
-use App\Http\Resources\ShelfResource;
-use App\Services\ShelfService;
+use App\Http\Requests\AddBookToUserRequest;
+use App\Http\Resources\UserBookResource;
+use App\Services\UserBookService;
 use Illuminate\Http\Request;
 
-class ShelfController extends Controller
+class UserBookController extends Controller
 {
     public function __construct(
-        protected ShelfService $service,
+        protected UserBookService $service,
     ) {}
 
     public function index(Request $request)
     {
-        return ShelfResource::collection($this->service->get($request->user()));
+        return UserBookResource::collection($this->service->get($request->user()));
     }
 
-    public function add(AddBookToShelfRequest $request): \Illuminate\Http\JsonResponse
+    public function add(AddBookToUserRequest $request): \Illuminate\Http\JsonResponse
     {
         $data = $request->validated();
         $this->service->add($request->user(), $data['book_slug']);

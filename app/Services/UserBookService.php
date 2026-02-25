@@ -5,7 +5,7 @@ namespace App\Services;
 use App\Models\User;
 use App\Repositories\BookRepository;
 
-class ShelfService
+class UserBookService
 {
     public function __construct(
         protected BookRepository $bookRepository,
@@ -13,18 +13,18 @@ class ShelfService
 
     public function get(User $user)
     {
-        return $user->shelves()->with('book')->paginate(10);
+        return $user->userBooks()->with('book')->paginate(10);
     }
 
     public function add(User $user, string $slug)
     {
         $bookId = $this->bookRepository->getIdBySlug($slug);
-        return $user->shelves()->updateOrCreate(['book_id' => $bookId]);
+        return $user->userBooks()->updateOrCreate(['book_id' => $bookId]);
     }
 
     public function delete(User $user, string $slug)
     {
         $bookId = $this->bookRepository->getIdBySlug($slug);
-        return $user->shelves()->where(['book_id' => $bookId])->delete();
+        return $user->userBooks()->where(['book_id' => $bookId])->delete();
     }
 }
