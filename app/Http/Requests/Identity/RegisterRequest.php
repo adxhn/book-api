@@ -8,6 +8,8 @@ use Illuminate\Validation\Rules\Password;
 
 class RegisterRequest extends FormRequest
 {
+    public int $minLength = 6;
+
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -25,7 +27,7 @@ class RegisterRequest extends FormRequest
     {
         return [
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
-            'password' => PasswordService::passwordRules()
+            'password' => PasswordService::passwordRules($this->minLength)
         ];
     }
 
@@ -37,5 +39,22 @@ class RegisterRequest extends FormRequest
         $this->merge([
             'email' => strtolower(trim($this->email)),
         ]);
+    }
+
+    public function attributes(): array
+    {
+        return [
+            'email' => 'e-posta',
+        ];
+    }
+
+    public function messages(): array
+    {
+        $minLength = $this->minLength;
+
+        return [
+            'password.min' => "Şifre en az {$minLength} karakterden oluşmalıdır.",
+            'password.confirmed' => "Şifre doğrulaması eşleşmiyor.",
+        ];
     }
 }

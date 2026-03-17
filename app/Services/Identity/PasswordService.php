@@ -42,13 +42,13 @@ class PasswordService
         return trans($status);
     }
 
-    public static function passwordRules(): array
+    public static function passwordRules(int $min): array
     {
         return [
             'required',
             'string',
             'confirmed',
-            \Illuminate\Validation\Rules\Password::min(6)
+            \Illuminate\Validation\Rules\Password::min($min)
                 ->letters()
                 ->numbers()
                 ->mixedCase(),

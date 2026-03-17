@@ -36,17 +36,4 @@ class LoginRequest extends FormRequest
             'email' => strtolower(trim($this->email)),
         ]);
     }
-
-    /**
-     * Get custom messages for validator errors.
-     *
-     * @return array<string, string>
-     */
-    public function messages(): array
-    {
-        return [
-            'email.required' => 'E-posta alanı zorunludur.',
-            'password.required' => 'Şifre alanı zorunludur.',
-        ];
-    }
 }
