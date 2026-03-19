@@ -55,6 +55,8 @@ class RegisterRequest extends FormRequest
         return [
             'password.min' => "Şifre en az {$minLength} karakterden oluşmalıdır.",
             'password.confirmed' => "Şifre doğrulaması eşleşmiyor.",
+            'password.required' => "Şifre zorunludur.",
+            'email.required' => "E-posta zorunludur.",
         ];
     }
 }
