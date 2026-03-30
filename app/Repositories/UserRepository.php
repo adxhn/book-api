@@ -12,12 +12,13 @@ class UserRepository
     (
         string $name,
         string $email,
-        string $password
+        string $password,
+        string $displayName
     ): User
     {
         return User::create([
             'name' => $name,
-            'display_name' => $name,
+            'display_name' => $displayName,
             'email' => $email,
             'password' => Hash::make($password),
         ]);

@@ -23,13 +23,15 @@ class AuthService
     public function register(
         string $email,
         string $password,
+        string $displayName,
     ): array
     {
-        return DB::transaction(function () use ($email, $password) {
+        return DB::transaction(function () use ($email, $password, $displayName) {
             $user = $this->userRepository->create(
                 $this->generateUniqueName($email),
                 $email,
                 $password,
+                $displayName
             );
 
             $token = $user->createToken('auth-token');

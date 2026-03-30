@@ -27,6 +27,7 @@ class RegisterRequest extends FormRequest
     {
         return [
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+            'display_name' => ['required', 'string', 'min:3', 'max:50', 'regex:/^[A-Za-z0-9 ]+$/'],
             'password' => PasswordService::passwordRules($this->minLength)
         ];
     }
@@ -45,6 +46,7 @@ class RegisterRequest extends FormRequest
     {
         return [
             'email' => 'e-posta',
+            'display_name' => 'İsim',
         ];
     }
 
@@ -57,6 +59,10 @@ class RegisterRequest extends FormRequest
             'password.confirmed' => "Şifre doğrulaması eşleşmiyor.",
             'password.required' => "Şifre zorunludur.",
             'email.required' => "E-posta zorunludur.",
+            'display_name.required' => "İsim zorunludur.",
+            'display_name.min' => "İsim en az 3 karakterli olmalıdır.",
+            'display_name.max' => "İsim en fazla 50 karakterli olmalıdır.",
+            'display_name.regex' => "İsim yalnızca harf, rakam ve boşluk içermelidir.",
         ];
     }
 }
