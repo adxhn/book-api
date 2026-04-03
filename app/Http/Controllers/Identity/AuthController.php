@@ -24,7 +24,8 @@ class AuthController extends Controller
         $validated = $request->validated();
         $result = $this->service->register(
             $validated['email'],
-            $validated['password']
+            $validated['password'],
+            $validated['display_name'],
         );
 
         return $this->success(

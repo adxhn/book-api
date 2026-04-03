@@ -5,10 +5,13 @@ namespace App\Models;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\UserStatus;
 use App\Notifications\PasswordReset;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Auth\Passwords\CanResetPassword;
 use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
@@ -58,5 +61,14 @@ class User extends Authenticatable implements CanResetPasswordContract, MustVeri
     public function userBooks(): HasMany
     {
         return $this->hasMany(UserBook::class);
+    }
+
+    protected function profilePhotoUrl(): Attribute
+    {
+        return Attribute::make(
+            get: fn (?string $value) => $value
+                ? Storage::disk('public')->url($value)
+                : 'https://ui-avatars.com/api/?size=128&name=' . urlencode($this->display_name ?? $this->name ?? 'User'),
+        );
     }
 }

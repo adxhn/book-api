@@ -14,6 +14,8 @@ class AuthResource
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
+                'display_name' => $user->display_name,
+                'profile_photo_url' => $user->profile_photo_url,
             ],
             'token' => $accessToken->plainTextToken,
         ];

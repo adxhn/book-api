@@ -14,15 +14,19 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->nullable();
-            $table->string('display_name')->nullable();
+            $table->string('name', 100)->nullable();
+            $table->string('display_name', 100)->nullable();
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->timestamp('phone_verified_at')->nullable();
             $table->string('password');
+            $table->string('profile_photo_url', 1024)->nullable();
             $table->enum('user_status', \App\Enums\UserStatus::values())->default(UserStatus::ACTIVE);
             $table->rememberToken();
             $table->timestamps();
+
+            $table->index(['user_status', 'display_name']);
+            $table->index(['user_status', 'name']);
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {

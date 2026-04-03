@@ -65,16 +65,6 @@ class SearchManager
             ->get();
     }
 
-    /**
-     * Kullanıcının yazdığı kelimeler tam olarak o sırayla bulunur.
-     * Like aramasına benzer bir yapıda (kullanıcı deneyimi düşük kalabilir)
-     */
-    protected function exactPhraseBooks(string $param)
-    {
-        $exactTerm = '"' . $param . '"';
-        return Book::whereFullText('title', $exactTerm, ['mode' => 'boolean'])->limit(10)->get();
-    }
-
     protected function authors(string $param)
     {
         return Author::where('name', 'LIKE', $param . '%')->limit(10)->get();
